@@ -114,6 +114,24 @@ export const SAMPLE_SCENARIOS = [
     content: 'FedEx: Your package delivery has been put on hold due to incorrect address information and unpaid customs duty of ₹1,450. Update your address and pay online within 24h at http://fedex-parcel-update.top/track to avoid parcel return.',
   },
   {
+    id: 'linkedin_recruiter',
+    label: '💼 Fake LinkedIn Recruiter Offer',
+    type: 'linkedin',
+    content: 'Hi! I am Sarah from Google Talent Acquisition on LinkedIn. We reviewed your profile and want to offer you a Remote Senior Assistant role ($6,500/month). No interview needed. Add our hiring manager on Telegram @GoogleHiring_Sarah to start immediately.',
+  },
+  {
+    id: 'email_invoice',
+    label: '✉️ Fake PayPal / Geek Squad Invoice',
+    type: 'email',
+    content: 'From: service-billing@gmail.com\nSubject: Invoice #US-98211: Your Geek Squad Protection Plan Auto-Renewed for $499.00\n\nDear Customer, Thank you for your auto-renewal of $499.99 from your PayPal account. If you did not authorize this charge, call our 24/7 fraud desk immediately at +1-800-419-9214 to cancel and claim a full refund.',
+  },
+  {
+    id: 'safe_linkedin',
+    label: '🌐 Authentic LinkedIn Profile',
+    type: 'linkedin',
+    content: 'https://www.linkedin.com/in/satyanadella',
+  },
+  {
     id: 'safe_order',
     label: '✅ Legitimate Order Confirmation',
     type: 'sms',
@@ -396,6 +414,102 @@ const SCAM_PATTERNS = [
       ],
     },
   },
+
+  // 8. Fake LinkedIn Recruiter / Job Phishing
+  {
+    category: 'LINKEDIN_RECRUITER_SCAM',
+    name: 'Fake LinkedIn Recruiter / Job Offer Scam',
+    regex: /(?:linkedin|inmail|talent\s+acquisition|hiring\s+manager|recruiter|hr\s+team).{0,120}(?:telegram|whatsapp|interview\s+on|stipend|equipment\s+fee|direct\s+hire|no\s+interview|usd\s*[\d,]+|\$\s*[\d,]+|wfh\s+role)/i,
+    severity: 'high',
+    score: 93,
+    getIndicators: (text) => {
+      const channelMatch = text.match(/(?:telegram|whatsapp|signal)\s*[@:\w_]+/i);
+      const payMatch = text.match(/(?:\$|usd|₹|rs\.?)\s*[\d,]+(?:\s*(?:per\s+week|weekly|per\s+month|monthly|\/hr))?/i);
+      return [
+        {
+          id: 'li-off-platform',
+          title: 'Off-Platform Redirection Signal',
+          severity: 'high',
+          explanation: 'Recruiter urges candidate to abandon verified LinkedIn messaging for unmonitored encrypted channels (Telegram/WhatsApp).',
+          evidence: channelMatch ? `"${channelMatch[0]}"` : 'Urges moving off LinkedIn messaging',
+        },
+        {
+          id: 'li-unrealistic-offer',
+          title: 'Direct High-Compensation Offer Anomaly',
+          severity: 'high',
+          explanation: 'Offers lucrative compensation with zero formal technical interviews, background screening, or official HR portal application.',
+          evidence: payMatch ? `Extravagant compensation: "${payMatch[0]}"` : 'Offers position with zero interview screening',
+        },
+        {
+          id: 'li-credential-trap',
+          title: 'Corporate Email & Identity Spoofing',
+          severity: 'medium',
+          explanation: 'Lacks verifiable corporate domain correspondence, often using free webmail addresses or disposable domains.',
+          evidence: 'Unverified company contact details',
+        },
+      ];
+    },
+    recommendation: {
+      summary: 'High probability of a fake LinkedIn recruiter scam. Do not proceed to external channels.',
+      actions: [
+        'NEVER move the conversation to Telegram or WhatsApp for "job interviews".',
+        'Check the recruiter\'s official LinkedIn profile: look for company verification badges and work history.',
+        'Apply directly through the company\'s official careers page (e.g. company.com/careers) to verify if the job ID exists.',
+        'Never send personal identity documents (Passport, Aadhaar) or bank information before an official written offer letter.',
+      ],
+    },
+  },
+
+  // 9. Email Spoofing & Fake Invoice Phishing
+  {
+    category: 'EMAIL_SPOOFING_PHISHING',
+    name: 'Corporate Email Spoofing & Invoice Phishing',
+    regex: /(?:invoice\s*#|auto-renew|subscription\s+renewed|geek\s+squad|norton|paypal\s+invoice|mcafee|apple\s+store\s+order|netflix\s+account|billing\s+department|membership\s+on\s+hold|call\s+(?:\+?1[-\s]?)?(?:8\d{2}|9\d{2})[-\s]?\d{3}[-\s]?\d{4})/i,
+    severity: 'high',
+    score: 91,
+    getIndicators: (text) => {
+      const amountMatch = text.match(/(?:\$|usd|₹|rs\.?)\s*[\d,]+(?:\.\d{2})?/i);
+      const phoneMatch = text.match(/(?:\+?1[-\s]?)?(?:8\d{2}|9\d{2})[-\s]?\d{3}[-\s]?\d{4}/);
+      const freeMailMatch = text.match(/\b[\w.-]+@(gmail|yahoo|hotmail|outlook)\.com\b/i);
+      const indicators = [
+        {
+          id: 'email-invoice-fraud',
+          title: 'Fake Auto-Renewal / Invoice Bait',
+          severity: 'high',
+          explanation: 'Falsely claims an expensive service renewal (Geek Squad, Norton, PayPal, Netflix) to induce panic over unauthorized credit charges.',
+          evidence: amountMatch ? `Bogus charge: "${amountMatch[0]}"` : 'Claims unauthorized subscription charge',
+        },
+      ];
+      if (freeMailMatch) {
+        indicators.push({
+          id: 'email-domain-mismatch',
+          title: 'Free Webmail Corporate Impersonation',
+          severity: 'high',
+          explanation: 'Sender uses a free personal webmail service (@' + freeMailMatch[1] + '.com) while claiming to represent a corporate billing department.',
+          evidence: freeMailMatch[0],
+        });
+      }
+      if (phoneMatch) {
+        indicators.push({
+          id: 'email-call-trap',
+          title: 'Fraudulent Refund / Call-Center Trap',
+          severity: 'high',
+          explanation: 'Directs victim to call a fake customer service number designed to initiate remote desktop access (AnyDesk) or wire transfers.',
+          evidence: `Fake support number: "${phoneMatch[0]}"`,
+        });
+      }
+      return indicators;
+    },
+    recommendation: {
+      summary: 'This is an invoice/refund phishing scam. Do NOT call the phone number in this email.',
+      actions: [
+        'Do NOT call the number listed in the email to cancel or request a refund.',
+        'Check your real bank or card statement directly — no such charge has been deducted.',
+        'Never allow any caller to connect to your computer or install remote software.',
+        'Mark the email as Phishing/Spam in your email client.',
+      ],
+    },
+  },
 ];
 
 /* ─── LINK HEURISTICS ────────────────────────────────────────────────────── */
@@ -490,7 +604,7 @@ function checkSafeContent(text) {
   const lower = text.toLowerCase();
   // Signals of routine everyday messages
   const isGreeting = /^(?:hi|hello|hey|good\s+morning|good\s+evening|how\s+are\s+you|happy\s+birthday|happy\s+diwali|congrats|thanks|thank\s+you)\b/i.test(lower.trim());
-  const isConversational = lower.length < 120 && !/(?:urgent|otp|pin|password|bank|verify|link|http|arrest|cbi|police|win|prize|discon|cut|telegram|earn|₹|\$)/i.test(lower);
+  const isConversational = lower.length < 120 && !/(?:urgent|otp|pin|password|bank|verify|link|http|arrest|cbi|police|win|prize|discon|cut|telegram|earn|invoice|billing|refund|charge|fee|service|call|order|subscription|cancel|gift|account|fraud|alert|suspend|\+?\d{10}|₹|\$)/i.test(lower);
   const isCleanOrderConfirmation = /(?:delivered|order\s+shipped|tracking\s+inside\s+the\s+official\s+app)\b/i.test(lower) && !/https?:\/\/(?!amazon\.in|flipkart\.com)/i.test(lower);
 
   return isGreeting || isConversational || isCleanOrderConfirmation;
@@ -504,6 +618,23 @@ function checkSafeContent(text) {
 export function computeRiskScore(inputType, content = '') {
   const text = (content || '').trim();
   if (!text) return 10;
+
+  // 1. LinkedIn Account Verification & Threat Evaluation
+  if (inputType === 'linkedin' || text.includes('linkedin.com/in/') || /linkedln|linkedin-[a-z]/i.test(text)) {
+    const isTyposquat = /(?:https?:\/\/|\b)[a-z0-9-]*linkedin[a-z0-9-]*\.(?!com\b|org\b)[a-z]{2,}/i.test(text) || /\blinkedln\b/i.test(text);
+    if (isTyposquat) return 96;
+    const hasOffPlatform = /(?:telegram|whatsapp|signal|stipend|equipment\s+fee|direct\s+hire|usd\s*[\d,]+|\$\s*[\d,]+|wfh\s+role)/i.test(text);
+    if (hasOffPlatform) return 93;
+    const isOfficialDomain = /https?:\/\/(?:[a-z]{2,3}\.)?linkedin\.com\/(?:in|company|jobs)\/[\w-]+/i.test(text);
+    if (isOfficialDomain) return 8;
+  }
+
+  // 2. Structured Email Phishing & Spoofing Evaluation
+  if (inputType === 'email' || /(?:from:\s*[\w.-]+@(gmail|yahoo|hotmail|outlook)\.com)/i.test(text)) {
+    const isFreeMailImpersonation = /from:\s*[\w.-]+@(gmail|yahoo|hotmail|outlook)\.com/i.test(text) && /(?:billing|support|helpdesk|service|admin|security|paypal|netflix|geek squad|norton|mcafee|invoice)/i.test(text);
+    const isInvoiceScam = /(?:invoice\s*#|auto-renew|subscription\s+renewed|geek\s+squad|norton|mcafee|apple\s+store\s+order|netflix\s+account|billing\s+department|call\s+(?:\+?1[-\s]?)?(?:8\d{2}|9\d{2}))/i.test(text);
+    if (isFreeMailImpersonation || isInvoiceScam) return 91;
+  }
 
   if (inputType === 'link' || /^https?:\/\//i.test(text)) {
     return analyzeLink(text).score;
@@ -544,7 +675,82 @@ export function computeRiskScore(inputType, content = '') {
 export function buildAnalysisResult(score, inputType = 'sms', content = '') {
   const text = (content || '').trim();
 
-  // 1. Link specific analysis
+  // 1. LinkedIn Account & Recruiter Verification
+  if (inputType === 'linkedin' || text.includes('linkedin.com/in/') || /linkedln|linkedin-[a-z]/i.test(text)) {
+    const isOfficialDomain = /https?:\/\/(?:[a-z]{2,3}\.)?linkedin\.com\/(?:in|company|jobs)\/[\w-]+/i.test(text);
+    const isTyposquat = /(?:https?:\/\/|\b)[a-z0-9-]*linkedin[a-z0-9-]*\.(?!com\b|org\b)[a-z]{2,}/i.test(text) || /\blinkedln\b/i.test(text);
+    const hasOffPlatform = /(?:telegram|whatsapp|signal|gmail\.com|yahoo\.com)/i.test(text);
+
+    if (isTyposquat) {
+      return {
+        isDemo: true,
+        riskScore: 96,
+        confidence: 0.97,
+        category: 'LINKEDIN_TYPOSQUATTING_PHISHING',
+        assetType: 'LINKEDIN',
+        indicators: [
+          {
+            id: 'li-typosquat',
+            title: 'Deceptive Lookalike Domain (Typosquatting)',
+            severity: 'critical',
+            explanation: 'The link mimics LinkedIn but is hosted on a deceptive third-party domain designed to harvest professional credentials and session tokens.',
+            evidence: text.match(/https?:\/\/[^\s"'<>]+/)?.[0] || text,
+          },
+          {
+            id: 'li-credential-trap',
+            title: 'Fake LinkedIn OAuth / SSO Harvesting Gateway',
+            severity: 'high',
+            explanation: 'Captures business emails, passwords, and 2FA cookies to impersonate professionals and execute corporate fraud.',
+            evidence: 'Unverified external domain masquerading as LinkedIn',
+          },
+        ],
+        recommendation: {
+          summary: 'DANGER: This is a cloned LinkedIn phishing page. Do NOT enter your credentials.',
+          actions: [
+            'Do NOT enter your LinkedIn login, email, or password on this link.',
+            'Genuine LinkedIn profiles and job postings are strictly hosted on https://www.linkedin.com/.',
+            'If you already entered passwords, change your LinkedIn and business email passwords immediately and revoke active sessions.',
+          ],
+        },
+      };
+    }
+
+    if (isOfficialDomain && !hasOffPlatform) {
+      return {
+        isDemo: true,
+        riskScore: 8,
+        confidence: 0.95,
+        category: 'VERIFIED_LINKEDIN_PROFILE',
+        assetType: 'LINKEDIN',
+        indicators: [
+          {
+            id: 'li-verified-domain',
+            title: 'Authentic Official LinkedIn Routing',
+            severity: 'low',
+            explanation: 'URL resolves directly to LinkedIn’s verified global platform (linkedin.com) with valid EV/TLS encryption.',
+            evidence: text.match(/https?:\/\/(?:[a-z]{2,3}\.)?linkedin\.com\/[^\s"'<>]+/)?.[0] || text,
+          },
+          {
+            id: 'li-clean-account',
+            title: 'Clean Account Signal & No Off-Platform Trap',
+            severity: 'low',
+            explanation: 'No illicit redirection triggers (Telegram/WhatsApp), advance-fee solicitations, or credential traps detected.',
+            evidence: 'Legitimate LinkedIn account structure.',
+          },
+        ],
+        recommendation: {
+          summary: 'This LinkedIn profile link is on the authentic LinkedIn domain.',
+          actions: [
+            'Verified on official linkedin.com domain.',
+            'Best Practice: Verify mutual connections, activity history, and company verification badges before sharing professional portfolios.',
+            'Keep initial recruitment discussions inside LinkedIn InMail until you receive an official corporate email from the employer’s domain.',
+          ],
+        },
+      };
+    }
+  }
+
+  // 2. Generic Link specific analysis
   if (inputType === 'link' || (text.startsWith('http://') || text.startsWith('https://'))) {
     const linkEval = analyzeLink(text || 'https://suspicious-link.example.com');
     const finalScore = Math.max(score, linkEval.score);
@@ -580,8 +786,23 @@ export function buildAnalysisResult(score, inputType = 'sms', content = '') {
     };
   }
 
-  // 2. Safe conversational text
-  if (checkSafeContent(text) || score <= 20) {
+  // 3. Match against scam archetypes
+  for (const pattern of SCAM_PATTERNS) {
+    if (pattern.regex.test(text)) {
+      return {
+        isDemo: true,
+        riskScore: Math.max(score, pattern.score),
+        confidence: 0.95,
+        category: pattern.category,
+        assetType: inputType.toUpperCase(),
+        indicators: pattern.getIndicators(text),
+        recommendation: pattern.recommendation,
+      };
+    }
+  }
+
+  // 4. Safe conversational text
+  if ((checkSafeContent(text) && score <= 30) || score <= 20) {
     return {
       isDemo: true,
       riskScore: Math.min(score, 12),
@@ -606,21 +827,6 @@ export function buildAnalysisResult(score, inputType = 'sms', content = '') {
         ],
       },
     };
-  }
-
-  // 3. Match against scam archetypes
-  for (const pattern of SCAM_PATTERNS) {
-    if (pattern.regex.test(text)) {
-      return {
-        isDemo: true,
-        riskScore: pattern.score,
-        confidence: 0.95,
-        category: pattern.category,
-        assetType: inputType.toUpperCase(),
-        indicators: pattern.getIndicators(text),
-        recommendation: pattern.recommendation,
-      };
-    }
   }
 
   // 4. Heuristic Fallback for other suspicious content

@@ -66,6 +66,7 @@ exports.routeFromUserCategory = (category) => {
     email: 'email_kyc',
     url: 'payment_page',
     link: 'payment_page',
+    linkedin: 'text_thread',
     qr: 'qr',
   };
   return map[category?.toLowerCase()] || 'text_thread';

@@ -309,6 +309,27 @@ const RULES = [
         textLower.includes(brand) && senderLower.includes(brand) && !senderLower.includes(domain)
       );
     },
+    description: 'Sender domain does not match claimed brand identity.',
+  },
+  {
+    name: 'Fake LinkedIn Recruiter / Job Scam',
+    score: 65,
+    icon: 'briefcase', color: 'red',
+    test: (t) => /(?:linkedin|inmail|talent\s+acquisition|hiring\s+manager|recruiter|hr\s+team).{0,120}(?:telegram|whatsapp|interview\s+on|stipend|equipment\s+fee|direct\s+hire|no\s+interview|usd\s*[\d,]+|\$\s*[\d,]+|wfh\s+role)/i.test(t)
+      || /(?:linkedin[^.\/]*\.(?!com\b)|linkedln\b)/i.test(t),
+    description: 'Impersonates LinkedIn recruiters or directs candidate off-platform to Telegram/WhatsApp for task-based advance-fee extortion.',
+  },
+  {
+    name: 'Corporate Email Spoofing & Invoice Phishing',
+    score: 60,
+    icon: 'mail', color: 'red',
+    test: (t) => /(?:invoice\s*#|auto-renew|subscription\s+renewed|geek\s+squad|norton|mcafee|apple\s+store\s+order|netflix\s+account|billing\s+department).{0,120}(?:call|refund|\$\s*[\d,]+|usd|unauthorized|cancelled|charge)/i.test(t)
+      || (/(?:netflix|paypal|amazon|apple|microsoft|bank).{0,60}billing/i.test(t) && /@(?:gmail|yahoo|hotmail|outlook)\.com/i.test(t)),
+    description: 'Corporate email spoofing and fake subscription renewal invoice designed to trigger panic refunds and wire transfers.',
+  },
+  {
+    name: 'Malicious URL Flagged',
+    score: 30,
     icon: 'shield-x', color: 'red',
     test: (t, e, ctx) => Object.values(ctx.urlReputations || {}).some(r => r.malicious),
     description: 'One or more URLs flagged as malicious by reputation services.',

@@ -2,7 +2,7 @@
 
 const { z } = require('zod');
 
-const INPUT_TYPES = ['screenshot', 'image', 'message', 'sms', 'text', 'email', 'url', 'link'];
+const INPUT_TYPES = ['screenshot', 'image', 'message', 'sms', 'text', 'email', 'url', 'link', 'linkedin'];
 const PIPELINE_TYPES = ['text_thread', 'qr', 'payment_page', 'email_kyc'];
 
 exports.analyzeSchema = z.object({

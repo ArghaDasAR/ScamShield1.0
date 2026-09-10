@@ -19,10 +19,11 @@ const FLOW = {
 
 /* ─── Input type tabs ───────────────────────────────────────────────────── */
 const INPUT_TYPES = [
-  { id: 'image', label: 'Image',    icon: '📸', placeholder: null },
-  { id: 'sms',   label: 'SMS/Text', icon: '💬', placeholder: 'Paste the suspicious SMS or text message here…' },
-  { id: 'email', label: 'Email',    icon: '✉️',  placeholder: 'Paste the suspicious email — subject, sender, and body — for best accuracy…' },
-  { id: 'link',  label: 'Link/URL', icon: '🔗', placeholder: null },
+  { id: 'image',    label: 'Image',            icon: '📸', placeholder: null },
+  { id: 'sms',      label: 'SMS / Text',       icon: '💬', placeholder: 'Paste the suspicious SMS or text message here…' },
+  { id: 'email',    label: 'Email',            icon: '✉️',  placeholder: 'Paste the suspicious email message or body here…' },
+  { id: 'linkedin', label: 'LinkedIn Verify',  icon: '💼', placeholder: 'Paste LinkedIn profile URL or recruiter message…' },
+  { id: 'link',     label: 'Link / URL',       icon: '🔗', placeholder: null },
 ]
 
 /* ─── Analysis stages per input type ───────────────────────────────────── */
@@ -44,12 +45,20 @@ const STAGES = {
     { id: 'explain',    label: 'Generating explanation'             },
   ],
   email: [
-    { id: 'headers',    label: 'Parsing email headers'              },
-    { id: 'body',       label: 'Extracting email body'              },
-    { id: 'sender',     label: 'Checking sender reputation'         },
-    { id: 'phishing',   label: 'Detecting phishing patterns'        },
+    { id: 'headers',    label: 'Parsing email headers & sender'     },
+    { id: 'body',       label: 'Extracting email body & links'      },
+    { id: 'sender',     label: 'Checking corporate domain spoofing' },
+    { id: 'phishing',   label: 'Detecting invoice & credential bait'},
     { id: 'indicators', label: 'Evaluating threat indicators'       },
     { id: 'explain',    label: 'Generating explanation'             },
+  ],
+  linkedin: [
+    { id: 'profile',    label: 'Resolving LinkedIn account / URL'   },
+    { id: 'domain',     label: 'Verifying official domain integrity'},
+    { id: 'recruiter',  label: 'Analysing recruiter communication'  },
+    { id: 'redirects',  label: 'Detecting off-platform traps'       },
+    { id: 'indicators', label: 'Checking trust & safety signals'    },
+    { id: 'explain',    label: 'Generating verification report'     },
   ],
   link: [
     { id: 'resolve',    label: 'Resolving URL structure'            },
@@ -76,12 +85,14 @@ export default function AnalyzePage() {
   const [result,      setResult]      = useState(null)
   const [errorMsg,    setErrorMsg]    = useState('')
   const [extractedText, setExtractedText] = useState('')
+  const [emailSender,   setEmailSender]   = useState('')
+  const [emailSubject,  setEmailSubject]  = useState('')
   const fileInputRef = useRef(null)
 
   const stages = STAGES[inputType] || STAGES.image
 
   /* ─── Core analysis runner ─────────────────────────────────────────────── */
-  const runAnalysis = useCallback(async (content = '', uploadData = null) => {
+  const runAnalysis = useCallback(async (content = '', uploadData = null, extraContext = null) => {
     setFlow(FLOW.PROCESSING)
     setStageIdx(-1)
 
@@ -91,6 +102,8 @@ export default function AnalyzePage() {
       content,
       cloudinaryUrl: uploadData?.url,
       publicId: uploadData?.publicId,
+      sender: extraContext?.sender,
+      subject: extraContext?.subject,
     })
 
     // Animate through stages
@@ -152,13 +165,39 @@ export default function AnalyzePage() {
     }
   }, [runAnalysis])
 
-  /* ─── Text / URL submission ────────────────────────────────────────────── */
+  /* ─── Text / URL / Email / LinkedIn submission ─────────────────────────── */
   const handleTextSubmit = useCallback(async () => {
-    const content = inputType === 'link' ? urlContent.trim() : textContent.trim()
-    if (!content) { setErrorMsg('Please enter some content to analyze.'); setFlow(FLOW.ERROR); return }
+    let content = ''
+    let sender = undefined
+    let subject = undefined
+
+    if (inputType === 'link') {
+      content = urlContent.trim()
+    } else if (inputType === 'email') {
+      sender = emailSender.trim() || undefined
+      subject = emailSubject.trim() || undefined
+      const parts = []
+      if (emailSender.trim()) parts.push(`From: ${emailSender.trim()}`)
+      if (emailSubject.trim()) parts.push(`Subject: ${emailSubject.trim()}`)
+      if (textContent.trim()) parts.push(textContent.trim())
+      content = parts.join('\n')
+    } else if (inputType === 'linkedin') {
+      const parts = []
+      if (urlContent.trim()) parts.push(urlContent.trim())
+      if (textContent.trim()) parts.push(textContent.trim())
+      content = parts.join('\n\n')
+    } else {
+      content = textContent.trim()
+    }
+
+    if (!content) {
+      setErrorMsg('Please enter some content or link to analyze.')
+      setFlow(FLOW.ERROR)
+      return
+    }
     setErrorMsg('')
-    await runAnalysis(content)
-  }, [inputType, textContent, urlContent, runAnalysis])
+    await runAnalysis(content, null, { sender, subject })
+  }, [inputType, textContent, urlContent, emailSender, emailSubject, runAnalysis])
 
   /* ─── Drag & drop ──────────────────────────────────────────────────────── */
   const onDrop      = useCallback((e) => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files?.[0]; if (f) handleFile(f) }, [handleFile])
@@ -169,9 +208,20 @@ export default function AnalyzePage() {
   /* ─── Sample loader ─────────────────────────────────────────────────────── */
   const loadSample = (sample) => {
     setInputType(sample.type)
+    setEmailSender('')
+    setEmailSubject('')
     if (sample.type === 'link') {
       setUrlContent(sample.content)
       setTextContent('')
+    } else if (sample.type === 'email' && sample.content.includes('From:')) {
+      const lines = sample.content.split('\n')
+      const fromLine = lines.find(l => l.startsWith('From: '))
+      const subjLine = lines.find(l => l.startsWith('Subject: '))
+      const bodyLines = lines.filter(l => !l.startsWith('From: ') && !l.startsWith('Subject: '))
+      if (fromLine) setEmailSender(fromLine.replace('From: ', ''))
+      if (subjLine) setEmailSubject(subjLine.replace('Subject: ', ''))
+      setTextContent(bodyLines.join('\n').trim())
+      setUrlContent('')
     } else {
       setTextContent(sample.content)
       setUrlContent('')
@@ -182,7 +232,7 @@ export default function AnalyzePage() {
   const reset = () => {
     if (previewUrl) URL.revokeObjectURL(previewUrl)
     setFlow(FLOW.IDLE); setFile(null); setPreviewUrl(null)
-    setTextContent(''); setUrlContent(''); setExtractedText('')
+    setTextContent(''); setUrlContent(''); setEmailSender(''); setEmailSubject(''); setExtractedText('')
     setUploadPct(0); setStageIdx(-1); setResult(null); setErrorMsg('')
   }
 
@@ -283,18 +333,15 @@ export default function AnalyzePage() {
               </>
             )}
 
-            {/* ── SMS / Email textarea ── */}
-            {(inputType === 'sms' || inputType === 'email') && (
+            {/* ── SMS textarea ── */}
+            {inputType === 'sms' && (
               <div className="text-input-wrap">
-                {inputType === 'email' && (
-                  <p className="input-label">Include sender, subject, and body for best accuracy.</p>
-                )}
                 <textarea
                   className="text-input-area"
-                  placeholder={INPUT_TYPES.find(t => t.id === inputType)?.placeholder}
+                  placeholder={INPUT_TYPES.find(t => t.id === 'sms')?.placeholder}
                   value={textContent}
                   onChange={e => setTextContent(e.target.value)}
-                  aria-label={`Paste suspicious ${inputType} content`}
+                  aria-label="Paste suspicious SMS content"
                 />
                 <button
                   className="btn btn-solid"
@@ -303,7 +350,135 @@ export default function AnalyzePage() {
                   disabled={!textContent.trim()}
                   type="button"
                 >
-                  Analyze with Sense Check.ai →
+                  Analyze SMS with Sense Check.ai →
+                </button>
+              </div>
+            )}
+
+            {/* ── Structured Email Threat Analysis ── */}
+            {inputType === 'email' && (
+              <div className="text-input-wrap" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <span style={{ fontSize: 20 }}>📧</span>
+                  <div>
+                    <p style={{ margin: 0, fontSize: 13, fontWeight: 500, color: '#e5e7eb' }}>
+                      Email Spoofing & Phishing Detection Active
+                    </p>
+                    <p style={{ margin: 0, fontSize: 12, color: '#9ca3af' }}>
+                      Flags corporate identity spoofing (e.g. @gmail senders claiming to be PayPal/Netflix), fake subscription invoices, and phone callback refund traps.
+                    </p>
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10 }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>
+                      Sender / From Address (Optional)
+                    </label>
+                    <input
+                      className="url-input"
+                      type="text"
+                      placeholder="e.g. billing-dept@netflix-verify.cc or support@gmail.com"
+                      value={emailSender}
+                      onChange={e => setEmailSender(e.target.value)}
+                      style={{ fontSize: 13, height: 40 }}
+                      aria-label="Email sender address"
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>
+                      Subject Line (Optional)
+                    </label>
+                    <input
+                      className="url-input"
+                      type="text"
+                      placeholder="e.g. URGENT: Invoice #INV-84920 Overdue / Account Blocked"
+                      value={emailSubject}
+                      onChange={e => setEmailSubject(e.target.value)}
+                      style={{ fontSize: 13, height: 40 }}
+                      aria-label="Email subject line"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>
+                    Email Body Content <span style={{ color: '#ef4444' }}>*</span>
+                  </label>
+                  <textarea
+                    className="text-input-area"
+                    placeholder="Paste the email body, payment requests, unexpected invoice details, or refund contact instructions..."
+                    value={textContent}
+                    onChange={e => setTextContent(e.target.value)}
+                    rows={5}
+                    aria-label="Paste email body content"
+                  />
+                </div>
+
+                <button
+                  className="btn btn-solid"
+                  style={{ height: 44, fontSize: 14, width: '100%', marginTop: 4 }}
+                  onClick={handleTextSubmit}
+                  disabled={!textContent.trim() && !emailSender.trim()}
+                  type="button"
+                >
+                  Analyze Email Threat →
+                </button>
+              </div>
+            )}
+
+            {/* ── LinkedIn Account & Recruiter Verification ── */}
+            {inputType === 'linkedin' && (
+              <div className="text-input-wrap" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <div style={{ background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.22)', borderRadius: 10, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <span style={{ fontSize: 20 }}>💼</span>
+                  <div>
+                    <p style={{ margin: 0, fontSize: 13, fontWeight: 500, color: '#93c5fd' }}>
+                      LinkedIn Account & Recruiter Verification
+                    </p>
+                    <p style={{ margin: 0, fontSize: 12, color: '#bfdbfe', opacity: 0.85 }}>
+                      Verifies genuine <code style={{ color: '#fff', background: 'rgba(0,0,0,0.3)', padding: '1px 5px', borderRadius: 4 }}>linkedin.com/in/...</code> profiles, flags lookalike typosquatting domains, and detects Telegram/WhatsApp off-platform recruiter traps.
+                    </p>
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>
+                    LinkedIn Profile or Job URL (Optional)
+                  </label>
+                  <input
+                    className="url-input"
+                    type="url"
+                    placeholder="https://www.linkedin.com/in/recruiter-profile-name or lookalike link"
+                    value={urlContent}
+                    onChange={e => setUrlContent(e.target.value)}
+                    style={{ fontSize: 13, height: 40 }}
+                    aria-label="Paste LinkedIn profile URL"
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>
+                    InMail Message, Recruiter Chat, or Offer Details (Optional if URL provided)
+                  </label>
+                  <textarea
+                    className="text-input-area"
+                    placeholder="Paste the recruiter message or offer: e.g. 'We reviewed your profile and shortlisted you for Remote Data Analyst ($45/hr). Add our hiring manager on Telegram @...'"
+                    value={textContent}
+                    onChange={e => setTextContent(e.target.value)}
+                    rows={4}
+                    aria-label="Paste LinkedIn recruiter message"
+                  />
+                </div>
+
+                <button
+                  className="btn btn-solid"
+                  style={{ height: 44, fontSize: 14, width: '100%', marginTop: 4 }}
+                  onClick={handleTextSubmit}
+                  disabled={!urlContent.trim() && !textContent.trim()}
+                  type="button"
+                >
+                  Verify LinkedIn Account & Offer →
                 </button>
               </div>
             )}
