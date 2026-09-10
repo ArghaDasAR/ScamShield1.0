@@ -1,0 +1,11 @@
+{
+  "name": "sensecheck-ai",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SenseCheck AI — AI-powered scam and threat detection platform",
+  "scripts": {
+    "build": "cd SenseCheckAI && npm install && npm run build",
+    "start": "cd backend && node server.js",
+    "test": "cd backend && npm test"
+  }
+}

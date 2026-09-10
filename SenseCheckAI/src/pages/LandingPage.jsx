@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { useAppearAnimation } from '../hooks/useAppearAnimation'
 import Navbar from '../components/Navbar'
 import AuthModal from '../components/AuthModal'
@@ -50,9 +50,27 @@ const PIPELINE = [
 
 export default function LandingPage() {
   useAppearAnimation()
+  const location = useLocation()
   const [showAuth, setShowAuth] = useState(false)
   const [toastMessage, setToastMessage] = useState(null)
   const toastTimeoutRef = useRef(null)
+
+  // Smooth scroll to anchor on mount or hash change (e.g. /#about-section)
+  useEffect(() => {
+    const handleHash = () => {
+      const hash = location.hash || window.location.hash
+      if (hash) {
+        const id = hash.replace('#', '')
+        const el = document.getElementById(id)
+        if (el) {
+          setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 120)
+        }
+      }
+    }
+    handleHash()
+    window.addEventListener('hashchange', handleHash)
+    return () => window.removeEventListener('hashchange', handleHash)
+  }, [location.hash])
 
   const showToast = (msg) => {
     if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current)

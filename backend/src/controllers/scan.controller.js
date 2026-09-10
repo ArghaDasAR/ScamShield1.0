@@ -58,6 +58,31 @@ exports.analyzeContent = async (req, res, next) => {
       },
     });
 
+    // Synchronous execution requested or running on Vercel serverless
+    if (req.query.sync === 'true' || process.env.VERCEL) {
+      await runSyncPipeline(scan.id, { cloudinaryUrl, publicId, inputType, content, sender, subject, userCategory });
+      const completedScan = await prisma.scan.findUnique({
+        where: { id: scan.id },
+        include: { entities: true, feedback: true },
+      });
+      return res.status(200).json({
+        scanId: scan.id,
+        status: completedScan?.status || 'completed',
+        verdict: completedScan?.verdict,
+        riskScore: completedScan?.riskScore,
+        severity: completedScan?.severity,
+        ruleScore: completedScan?.ruleScore,
+        llmScore: completedScan?.llmScore,
+        reasons: completedScan?.reasons || [],
+        tactics: completedScan?.tactics || [],
+        recommendations: completedScan?.recommendations || [],
+        urlRisk: completedScan?.urlRisk || 'Safe',
+        extractedText: completedScan?.extractedText || '',
+        pipeline: completedScan?.pipelineType,
+        inputType: completedScan?.inputType,
+      });
+    }
+
     // Try async via BullMQ (if Redis available)
     if (isRedisAvailable()) {
       await addScanJob(scan.id, { cloudinaryUrl, publicId, inputType, content, sender, subject, userCategory });

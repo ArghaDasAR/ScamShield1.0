@@ -2,7 +2,7 @@
 
 const { z } = require('zod');
 
-const INPUT_TYPES = ['screenshot', 'message', 'email', 'url'];
+const INPUT_TYPES = ['screenshot', 'image', 'message', 'sms', 'text', 'email', 'url', 'link'];
 const PIPELINE_TYPES = ['text_thread', 'qr', 'payment_page', 'email_kyc'];
 
 exports.analyzeSchema = z.object({
@@ -17,11 +17,13 @@ exports.analyzeSchema = z.object({
   userCategory: z.enum(PIPELINE_TYPES).optional(),
 }).refine(
   (data) => {
-    if (data.inputType === 'screenshot') return !!data.cloudinaryUrl;
+    if (data.inputType === 'screenshot' || data.inputType === 'image') {
+      return !!(data.cloudinaryUrl || (data.content && data.content.trim().length > 0));
+    }
     return !!(data.content && data.content.trim().length > 0);
   },
   {
-    message: 'cloudinaryUrl required for screenshots; content required for text/email/url',
+    message: 'cloudinaryUrl or content required for image/screenshot; content required for text/email/url/link',
     path: ['content'],
   }
 );

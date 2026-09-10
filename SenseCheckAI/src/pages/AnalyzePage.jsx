@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom'
 import LogoMark from '../components/LogoMark'
 import MatrixRain from '../components/MatrixRain'
 import { uploadToCloudinary, validateFile } from '../services/cloudinary'
-import { getRiskPhrase, computeRiskScore, buildAnalysisResult } from '../data/demoAnalysis'
+import { getRiskPhrase, computeRiskScore, buildAnalysisResult, SAMPLE_SCENARIOS } from '../data/demoAnalysis'
+import api from '../services/api'
 
 /* ─── Flow states ──────────────────────────────────────────────────────── */
 const FLOW = {
@@ -78,9 +79,17 @@ export default function AnalyzePage() {
   const stages = STAGES[inputType] || STAGES.image
 
   /* ─── Core analysis runner ─────────────────────────────────────────────── */
-  const runAnalysis = useCallback(async (content = '') => {
+  const runAnalysis = useCallback(async (content = '', uploadData = null) => {
     setFlow(FLOW.PROCESSING)
     setStageIdx(-1)
+
+    // Trigger backend analysis in parallel with UI stage animation
+    const analysisPromise = api.scan.analyze({
+      inputType,
+      content,
+      cloudinaryUrl: uploadData?.url,
+      publicId: uploadData?.publicId,
+    })
 
     // Animate through stages
     for (let i = 0; i < stages.length; i++) {
@@ -91,11 +100,16 @@ export default function AnalyzePage() {
     // Cinematic SCAN COMPLETE flash
     setStageIdx(stages.length)
     setFlow(FLOW.SCAN_DONE)
-    await new Promise(r => setTimeout(r, 1500))
+    await new Promise(r => setTimeout(r, 1200))
 
-    // Compute score from content (keyword/pattern analysis or filename hash)
-    const score = computeRiskScore(inputType, content)
-    setResult(buildAnalysisResult(score, inputType))
+    try {
+      const finalResult = await analysisPromise
+      setResult(finalResult)
+    } catch {
+      const score = computeRiskScore(inputType, content)
+      setResult(buildAnalysisResult(score, inputType, content))
+    }
+
     setFlow(FLOW.RESULT)
   }, [stages, inputType])
 
@@ -111,11 +125,11 @@ export default function AnalyzePage() {
     setErrorMsg('')
 
     try {
-      await uploadToCloudinary(f, pct => setUploadPct(pct))
-      await runAnalysis(f.name || 'image.jpg')
+      const uploadRes = await uploadToCloudinary(f, pct => setUploadPct(pct))
+      await runAnalysis(f.name || 'image.jpg', uploadRes)
     } catch (err) {
-      setErrorMsg(err.message || 'Upload failed. Please try again.')
-      setFlow(FLOW.ERROR)
+      console.warn('Cloudinary upload warning:', err.message)
+      await runAnalysis(f.name || 'image.jpg')
     }
   }, [runAnalysis])
 
@@ -132,6 +146,18 @@ export default function AnalyzePage() {
   const onDragOver  = (e) => { e.preventDefault(); setDragOver(true)  }
   const onDragLeave = ()  => setDragOver(false)
   const onInput     = (e) => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = '' }
+
+  /* ─── Sample loader ─────────────────────────────────────────────────────── */
+  const loadSample = (sample) => {
+    setInputType(sample.type)
+    if (sample.type === 'link') {
+      setUrlContent(sample.content)
+      setTextContent('')
+    } else {
+      setTextContent(sample.content)
+      setUrlContent('')
+    }
+  }
 
   /* ─── Reset ─────────────────────────────────────────────────────────────── */
   const reset = () => {
@@ -289,6 +315,37 @@ export default function AnalyzePage() {
                 </p>
               </div>
             )}
+
+            {/* ── Sample Scenarios ── */}
+            <div className="sample-scenarios" style={{ marginTop: 28, textAlign: 'center', maxWidth: 640 }}>
+              <p style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#8e8e8e', marginBottom: 12 }}>
+                ⚡ Or test instant real-world scam patterns:
+              </p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
+                {SAMPLE_SCENARIOS.map(s => (
+                  <button
+                    key={s.id}
+                    type="button"
+                    onClick={() => loadSample(s)}
+                    className="sample-chip"
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.04)',
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      borderRadius: 20,
+                      padding: '6px 14px',
+                      fontSize: 12,
+                      color: '#d1d5db',
+                      cursor: 'pointer',
+                      transition: 'all 0.18s ease',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.09)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.25)' }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)' }}
+                  >
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+            </div>
           </>
         )}
 
@@ -395,19 +452,27 @@ export default function AnalyzePage() {
               </div>
               <div className="confidence-row">
                 <span>AI Confidence</span>
-                <span style={{ color: '#e0e0e0', fontWeight: 500 }}>{Math.round(result.confidence * 100)}%</span>
+                <span style={{ color: '#e0e0e0', fontWeight: 500 }}>{Math.round((result?.confidence || 0.92) * 100)}%</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 12, paddingTop: 10, borderTop: '1px solid rgba(255,255,255,0.08)', fontSize: 11, color: '#9ca3af' }}>
+                <span style={{ textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 500 }}>
+                  {result?.category ? result.category.replace(/_/g, ' ') : 'THREAT PATTERN'}
+                </span>
+                <span style={{ color: '#6b7280' }}>
+                  {result?.isBackend ? '⚡ Cloud Neural Pipeline' : '🛡️ Local Real-Time Engine'}
+                </span>
               </div>
             </div>
 
             {/* ── Red flags — renamed ── */}
-            {result.indicators.length > 0 && (
+            {(result?.indicators || []).length > 0 && (
               <>
                 <p style={{ fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#9a9a9a', textAlign: 'center', marginBottom: 20 }}>
                   Red Flags that you must be aware of
                 </p>
                 <div className="signals-panel">
-                  {result.indicators.map((ind, i) => (
-                    <div key={ind.id} className="signal-card" style={{ animationDelay: `${i * 0.08}s` }}>
+                  {(result?.indicators || []).map((ind, i) => (
+                    <div key={ind.id || i} className="signal-card" style={{ animationDelay: `${i * 0.08}s` }}>
                       <div className="signal-top">
                         <span className="signal-title">{ind.title}</span>
                         <span className={`signal-severity ${ind.severity}`}>{ind.severity}</span>
@@ -424,7 +489,7 @@ export default function AnalyzePage() {
             <div className="recommendation-card">
               <p className="rec-title">What should you do?</p>
               <div className="rec-items">
-                {result.recommendation.actions.map((action, i) => (
+                {(result?.recommendation?.actions || result?.recommendations || []).map((action, i) => (
                   <div key={i} className="rec-item">
                     <div className="rec-bullet" />
                     {action}

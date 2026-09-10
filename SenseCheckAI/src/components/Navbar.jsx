@@ -46,35 +46,28 @@ export default function Navbar({ ctaLabel = 'Analyze Now', ctaHref = '/analyze' 
 
   /**
    * Handle nav link clicks:
-   * - Same page with hash → smooth scroll
-   * - Cross-page with hash → navigate then scroll
-   * - No hash → normal navigation
+   * - Same page with anchor → smooth scroll
+   * - Cross-page with anchor → let React Router navigate with hash intact
+   * - No anchor → normal navigation
    */
   const handleLinkClick = useCallback((e, link) => {
     closeMenu()
 
     if (!link.anchor) return // let <Link> handle it normally
 
-    e.preventDefault()
-
     const { pathname } = location
     const [basePath]   = link.to.split('#')
     const targetPath   = basePath || '/'
 
-    const scrollToAnchor = () => {
-      setTimeout(() => {
-        const el = document.getElementById(link.anchor)
-        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      }, 80)
-    }
-
     if (pathname === targetPath || (targetPath === '/' && pathname === '/')) {
-      scrollToAnchor()
-    } else {
-      navigate(targetPath)
-      scrollToAnchor()
+      e.preventDefault()
+      const el = document.getElementById(link.anchor)
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }
     }
-  }, [location, navigate, closeMenu])
+    // If different page, <Link to={link.to}> navigates with hash included
+  }, [location, closeMenu])
 
   return (
     <>

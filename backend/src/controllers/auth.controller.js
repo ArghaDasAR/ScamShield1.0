@@ -12,7 +12,7 @@ const prisma = require('../config/db');
 const signAccessToken = (user) =>
   jwt.sign(
     { id: user.id, email: user.email, name: user.name },
-    process.env.JWT_SECRET,
+    process.env.JWT_SECRET || 'dev-sensecheck-secret-key-replace-in-production-12345',
     { expiresIn: process.env.JWT_ACCESS_EXPIRES_IN || '15m' }
   );
 

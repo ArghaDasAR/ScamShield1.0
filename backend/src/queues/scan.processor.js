@@ -33,7 +33,7 @@ async function processScanJob(job) {
     let qrPayload = null;
     let detectedLanguage = 'en';
 
-    if (inputType === 'screenshot' && cloudinaryUrl) {
+    if ((inputType === 'screenshot' || inputType === 'image') && cloudinaryUrl) {
       const ocrUrl = uploadService.buildOcrUrl(cloudinaryUrl);
 
       job.log(`[${scanId}] Running QR decode`);

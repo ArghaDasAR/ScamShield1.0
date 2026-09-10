@@ -1,8 +1,9 @@
 import { useState } from 'react'
+import api from '../services/api'
 
 /**
  * AuthModal — Sign In / Sign Up glass-morphism modal.
- * Prototype: client-side only, no real authentication.
+ * Connected to SenseCheck Auth Service with resilient local state fallback.
  */
 export default function AuthModal({ onClose }) {
   const [tab,     setTab]     = useState('signin')
@@ -27,9 +28,18 @@ export default function AuthModal({ onClose }) {
       if (!pass)                 return setErr('Please enter your password.')
     }
     setLoading(true)
-    await new Promise(r => setTimeout(r, 1400)) // simulate network
-    setLoading(false)
-    setDone(true)
+    try {
+      if (tab === 'signup') {
+        await api.auth.signup({ name: name.trim(), email: email.trim(), password: pass })
+      } else {
+        await api.auth.login({ email: email.trim(), password: pass })
+      }
+      setLoading(false)
+      setDone(true)
+    } catch (authError) {
+      setLoading(false)
+      setErr(authError.message || 'Authentication failed. Please try again.')
+    }
   }
 
   return (

@@ -59,9 +59,13 @@ exports.routeFromTags = (tags = []) => {
 exports.routeFromUserCategory = (category) => {
   const map = {
     screenshot: 'text_thread',
+    image: 'text_thread',
     message: 'text_thread',
+    sms: 'text_thread',
+    text: 'text_thread',
     email: 'email_kyc',
     url: 'payment_page',
+    link: 'payment_page',
     qr: 'qr',
   };
   return map[category?.toLowerCase()] || 'text_thread';

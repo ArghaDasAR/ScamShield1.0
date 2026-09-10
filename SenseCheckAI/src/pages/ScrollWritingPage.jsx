@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import LogoMark from '../components/LogoMark'
 
 /* ─── Architecture pipeline nodes ─────────────────────────────────────────── */
@@ -114,6 +114,7 @@ const SECTIONS = [
 const SECTION_IDS = SECTIONS.map(s => s.id)
 
 export default function ScrollWritingPage() {
+  const location = useLocation()
   const snapRef = useRef(null)
   const [currentIdx, setCurrentIdx] = useState(0)
   const [activeNode, setActiveNode] = useState(-1)
@@ -135,20 +136,20 @@ export default function ScrollWritingPage() {
   /* ─── Hash navigation on mount & URL changes ───────────────────────────── */
   useEffect(() => {
     const handleHash = () => {
-      const hash = window.location.hash.replace('#', '')
+      const hash = (location.hash || window.location.hash || '').replace('#', '')
       if (!hash) return
       const idx = SECTION_IDS.indexOf(hash)
       if (idx !== -1) {
         goTo(idx)
       }
     }
-    const t = setTimeout(handleHash, 120)
+    const t = setTimeout(handleHash, 140)
     window.addEventListener('hashchange', handleHash)
     return () => {
       clearTimeout(t)
       window.removeEventListener('hashchange', handleHash)
     }
-  }, [goTo])
+  }, [location.hash, goTo])
 
   /* ─── Section wheel / keyboard / touch navigation ─────────────────────── */
   useEffect(() => {

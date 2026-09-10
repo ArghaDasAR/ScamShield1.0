@@ -30,7 +30,7 @@ async function detectMimeWithFileType(buffer) {
  * @returns {Promise<{ valid: boolean, detectedMime: string|null, error?: string }>}
  */
 exports.validateMagicBytes = async (buffer) => {
-  if (!buffer || buffer.length < 8) {
+  if (!buffer || buffer.length < 4) {
     return { valid: false, detectedMime: null, error: 'File buffer too small or empty.' };
   }
 
@@ -73,21 +73,30 @@ exports.validateMagicBytes = async (buffer) => {
  * Returns { url, publicId, tags, transformedUrl }
  */
 exports.uploadToCloudinary = async (file, userId = null) => {
-  if (!isCloudinaryConfigured()) {
-    throw new Error('Cloudinary is not configured. Set CLOUDINARY_CLOUD_NAME, API_KEY, and API_SECRET.');
-  }
-
   // Magic bytes check
-  const magicCheck = exports.validateMagicBytes(file.buffer);
+  const magicCheck = await exports.validateMagicBytes(file.buffer);
   if (!magicCheck.valid) {
-    const err = new Error(magicCheck.error);
+    const err = new Error(magicCheck.error || 'Invalid image file.');
     err.statusCode = 415;
     throw err;
   }
 
   const folder = userId ? `sensecheck-ai/uploads/${userId}` : 'sensecheck-ai/uploads/guest';
-  // Auto-expire originals after 30 days
   const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
+  if (!isCloudinaryConfigured()) {
+    console.info('[Upload] Cloudinary keys not set — running with direct buffer data URL');
+    const base64 = file.buffer.toString('base64');
+    const mime = magicCheck.detectedMime || file.mimetype || 'image/jpeg';
+    const dataUrl = `data:${mime};base64,${base64}`;
+    return {
+      url: dataUrl,
+      publicId: 'local_' + Date.now(),
+      tags: ['screenshot', 'chat'],
+      transformedUrl: dataUrl,
+      expiresAt,
+    };
+  }
 
   const result = await new Promise((resolve, reject) => {
     const uploadStream = cloudinary.uploader.upload_stream(

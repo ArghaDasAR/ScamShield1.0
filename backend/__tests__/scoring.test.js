@@ -1,16 +1,18 @@
-// ─── Scoring Engine Unit Tests ────────────────────────────────────────────────
+process.env.OPENAI_API_KEY = 'test-mock-key';
 
-// Mock OpenAI and DB so tests run without API keys
+const mockChatCreate = jest.fn().mockResolvedValue({
+  choices: [{ message: { content: JSON.stringify({ llmScore: 85, verdict: 'SCAM', reasons: ['Test LLM reason'], detectedLanguage: 'en', confidence: 'high' }) } }],
+});
+
 jest.mock('openai', () => {
-  return jest.fn().mockImplementation(() => ({
-    chat: {
+  return jest.fn().mockImplementation(function () {
+    this.chat = {
       completions: {
-        create: jest.fn().mockResolvedValue({
-          choices: [{ message: { content: JSON.stringify({ llmScore: 85, verdict: 'SCAM', reasons: ['Test LLM reason'], detectedLanguage: 'en', confidence: 'high' }) } }],
-        }),
+        create: mockChatCreate,
       },
-    },
-  }));
+    };
+    return this;
+  });
 });
 
 jest.mock('../src/config/db', () => ({ threatBlocklist: { findFirst: jest.fn().mockResolvedValue(null) } }));
@@ -72,8 +74,7 @@ describe('Scoring Engine', () => {
       subject: 'Order Shipped',
     };
     // Override LLM to return safe score
-    const openai = require('openai');
-    openai.mock.instances[0].chat.completions.create.mockResolvedValueOnce({
+    mockChatCreate.mockResolvedValueOnce({
       choices: [{ message: { content: JSON.stringify({ llmScore: 5, verdict: 'SAFE', reasons: [], detectedLanguage: 'en', confidence: 'high' }) } }],
     });
     const result = await scoringService.score(safeInput);
