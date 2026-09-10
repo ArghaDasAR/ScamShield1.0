@@ -143,6 +143,49 @@ export const api = {
   // ─── Scan service ─────────────────────────────────────────────────────────
   scan: {
     /**
+     * Upload raw image file to backend.
+     * Encodes to base64 Data URL as resilient fallback so OCR always receives raw image bytes.
+     */
+    async uploadImage(file) {
+      try {
+        const formData = new FormData();
+        formData.append('image', file);
+        const base = getApiBase();
+        const url = `${base}/api/scan/upload`;
+        const token = getAuthToken();
+
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+          body: formData,
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          return {
+            url: data.cloudinaryUrl || data.originalUrl,
+            publicId: data.publicId,
+          };
+        }
+      } catch (err) {
+        console.warn('[API] Upload endpoint unavailable, using direct Data URL:', err.message);
+      }
+
+      // Convert to base64 Data URL so backend & OCR receive actual raw bytes
+      const dataUrl = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      return {
+        url: dataUrl,
+        publicId: 'local_' + Date.now(),
+      };
+    },
+
+    /**
      * Submit content for analysis.
      * Tries backend first with sync=true; falls back to local rules engine if offline.
      */

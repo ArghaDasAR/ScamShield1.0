@@ -27,10 +27,14 @@ exports.extractText = async (imageUrl) => {
 async function extractWithGoogleVision(imageUrl) {
   const url = `https://vision.googleapis.com/v1/images:annotate?key=${process.env.GOOGLE_VISION_API_KEY}`;
 
+  const imageObj = (typeof imageUrl === 'string' && imageUrl.startsWith('data:'))
+    ? { content: imageUrl.split(',')[1] }
+    : { source: { imageUri: imageUrl } };
+
   const body = {
     requests: [
       {
-        image: { source: { imageUri: imageUrl } },
+        image: imageObj,
         features: [
           { type: 'DOCUMENT_TEXT_DETECTION', maxResults: 1 },
         ],
@@ -60,8 +64,13 @@ async function extractWithGoogleVision(imageUrl) {
 async function extractWithTesseract(imageUrl) {
   try {
     const Tesseract = require('tesseract.js');
+    let input = imageUrl;
+    if (typeof imageUrl === 'string' && imageUrl.startsWith('data:')) {
+      const base64Data = imageUrl.split(',')[1];
+      input = Buffer.from(base64Data, 'base64');
+    }
     // Multi-language: English + Hindi + Bengali
-    const { data } = await Tesseract.recognize(imageUrl, 'eng+hin+ben', {
+    const { data } = await Tesseract.recognize(input, 'eng+hin+ben', {
       logger: () => {},
       cachePath: './tesseract-cache',
     });

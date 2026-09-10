@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import LogoMark from '../components/LogoMark'
 import MatrixRain from '../components/MatrixRain'
 import { uploadToCloudinary, validateFile } from '../services/cloudinary'
+import { extractTextFromImage } from '../services/ocr'
 import { getRiskPhrase, computeRiskScore, buildAnalysisResult, SAMPLE_SCENARIOS } from '../data/demoAnalysis'
 import api from '../services/api'
 
@@ -74,6 +75,7 @@ export default function AnalyzePage() {
   const [stageIdx,    setStageIdx]    = useState(-1)
   const [result,      setResult]      = useState(null)
   const [errorMsg,    setErrorMsg]    = useState('')
+  const [extractedText, setExtractedText] = useState('')
   const fileInputRef = useRef(null)
 
   const stages = STAGES[inputType] || STAGES.image
@@ -113,7 +115,7 @@ export default function AnalyzePage() {
     setFlow(FLOW.RESULT)
   }, [stages, inputType])
 
-  /* ─── Image upload ─────────────────────────────────────────────────────── */
+  /* ─── Image upload & OCR sensing ───────────────────────────────────────── */
   const handleFile = useCallback(async (f) => {
     const v = validateFile(f)
     if (!v.ok) { setErrorMsg(v.error); setFlow(FLOW.ERROR); return }
@@ -121,14 +123,31 @@ export default function AnalyzePage() {
     setFile(f)
     setPreviewUrl(URL.createObjectURL(f))
     setFlow(FLOW.UPLOADING)
-    setUploadPct(0)
+    setUploadPct(15)
     setErrorMsg('')
+    setExtractedText('')
 
     try {
-      const uploadRes = await uploadToCloudinary(f, pct => setUploadPct(pct))
-      await runAnalysis(f.name || 'image.jpg', uploadRes)
+      // 1. Concurrently run client-side OCR sensing & server upload payload
+      const ocrPromise = extractTextFromImage(f, pct => {
+        setUploadPct(15 + Math.round(pct * 0.7))
+      })
+      const uploadPromise = api.scan.uploadImage(f)
+
+      const [ocrRes, uploadRes] = await Promise.allSettled([ocrPromise, uploadPromise])
+
+      const sensedText = (ocrRes.status === 'fulfilled' && ocrRes.value?.text)
+        ? ocrRes.value.text.trim()
+        : ''
+      const uploadData = uploadRes.status === 'fulfilled' ? uploadRes.value : null
+
+      setExtractedText(sensedText)
+
+      // Feed the REAL sensed text into the scam analysis engine!
+      const contentToAnalyze = sensedText || f.name || 'image.jpg'
+      await runAnalysis(contentToAnalyze, uploadData)
     } catch (err) {
-      console.warn('Cloudinary upload warning:', err.message)
+      console.warn('Image analysis warning:', err.message)
       await runAnalysis(f.name || 'image.jpg')
     }
   }, [runAnalysis])
@@ -163,7 +182,7 @@ export default function AnalyzePage() {
   const reset = () => {
     if (previewUrl) URL.revokeObjectURL(previewUrl)
     setFlow(FLOW.IDLE); setFile(null); setPreviewUrl(null)
-    setTextContent(''); setUrlContent('')
+    setTextContent(''); setUrlContent(''); setExtractedText('')
     setUploadPct(0); setStageIdx(-1); setResult(null); setErrorMsg('')
   }
 
@@ -354,7 +373,7 @@ export default function AnalyzePage() {
           <>
             <div style={{ textAlign: 'center' }}>
               <p style={{ fontSize: 13, color: '#9a9a9a', marginBottom: 12, letterSpacing: '-0.01em' }}>
-                Uploading to Cloudinary…
+                {uploadPct < 70 ? '👁️ Sensing & Extracting Raw Text from Image (OCR)…' : '⚡ Optimizing visual evidence & running threat model…'}
               </p>
               <div className="progress-track" style={{ maxWidth: 580 }}>
                 <div className="progress-fill" style={{ width: `${uploadPct}%` }} />
@@ -463,6 +482,43 @@ export default function AnalyzePage() {
                 </span>
               </div>
             </div>
+
+            {/* ── Sensed Raw OCR Text from Image ── */}
+            {(extractedText || result?.extractedText) && (
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.03)',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                borderRadius: 12,
+                padding: '16px 18px',
+                marginTop: 16,
+                marginBottom: 20,
+                textAlign: 'left',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <span style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#10b981', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span>👁️</span> Sensed Raw Text from Image (OCR)
+                  </span>
+                  <span style={{ fontSize: 11, color: '#9ca3af' }}>
+                    {(extractedText || result?.extractedText || '').length} characters sensed
+                  </span>
+                </div>
+                <div style={{
+                  fontSize: 12.5,
+                  color: '#e5e7eb',
+                  lineHeight: 1.55,
+                  background: 'rgba(0, 0, 0, 0.35)',
+                  padding: '12px 14px',
+                  borderRadius: 8,
+                  fontFamily: 'ui-monospace, monospace',
+                  whiteSpace: 'pre-wrap',
+                  maxHeight: 140,
+                  overflowY: 'auto',
+                  border: '1px solid rgba(255, 255, 255, 0.05)',
+                }}>
+                  {extractedText || result?.extractedText}
+                </div>
+              </div>
+            )}
 
             {/* ── Red flags — renamed ── */}
             {(result?.indicators || []).length > 0 && (
