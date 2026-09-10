@@ -1,1121 +1,1146 @@
-# 🛡️ ScamShield — Think Before You Click
+# 🛡️ SenseCheck AI
 
-> **A cybersecurity-first web application designed to help users identify potentially malicious, deceptive, or suspicious digital content before they click, respond, or share sensitive information.**
+> **Think Before You Trust.**
 
-[![Live Demo](https://img.shields.io/badge/Live-Demo-success?style=for-the-badge)](https://scamshield-l0vl114ju-arghadasars-projects.vercel.app/)
-[![Security](https://img.shields.io/badge/Focus-Cybersecurity-red?style=for-the-badge)](#)
-[![Status](https://img.shields.io/badge/Status-Prototype-blue?style=for-the-badge)](#)
+**SenseCheck AI** is an AI-assisted cybersecurity platform that helps users evaluate suspicious digital content before they click, pay, share information, or respond.
 
----
+Instead of relying on a single phishing indicator, SenseCheck combines **image ingestion, OCR, QR analysis, URL/entity extraction, deterministic security rules, reputation checks, and LLM-based classification** to generate an explainable risk assessment.
 
-## Overview
-
-**ScamShield** is a preventive cybersecurity platform built around a simple principle:
-
-> **Think Before You Click.**
-
-Modern scams increasingly depend on **social engineering**, urgency, impersonation, fraudulent links, fake notifications, and psychologically convincing messages rather than traditional malware alone.
-
-ScamShield is designed to provide users with a dedicated decision-support layer between **receiving suspicious digital content** and **taking an irreversible action**.
-
-Instead of asking users to judge whether something "looks suspicious", ScamShield turns that decision into a structured security-analysis workflow.
-
-### Core Security Objective
+The system is designed around a simple principle:
 
 ```text
 Suspicious Content
-       │
-       ▼
-┌──────────────────────┐
-│     ScamShield       │
-│   Input Processing   │
-└──────────┬───────────┘
-           │
-           ▼
-┌──────────────────────┐
-│ Security Analysis    │
-│ & Threat Signals     │
-└──────────┬───────────┘
-           │
-           ▼
-┌──────────────────────┐
-│ Risk Interpretation   │
-└──────────┬───────────┘
-           │
-           ▼
-┌─────────────────────────────┐
-│ User receives clear verdict │
-│ + explanation + next action  │
-└─────────────────────────────┘
+        ↓
+   SenseCheck AI
+        ↓
+Threat Signal Extraction
+        ↓
+   Risk Evaluation
+        ↓
+Explainable Verdict
+        ↓
+Recommended Action
 ```
 
-The system is intentionally positioned as **decision support**, not as an absolute guarantee that a website, message, sender, or request is safe.
+> **Human-in-the-loop:** SenseCheck AI provides evidence and risk context. It does not replace human judgment or official verification channels.
 
 ---
 
-# 🎯 Problem Statement
+## ✨ Why SenseCheck AI?
 
-Online fraud is increasingly successful because attackers exploit **human behaviour**.
+Modern scams are increasingly designed around **social engineering** rather than purely technical exploitation.
 
-Typical attack patterns include:
+Attackers may use:
 
-* "Your account will be blocked today."
-* "Verify your KYC immediately."
-* "Your parcel is waiting."
-* "You won a reward."
-* "Your refund is ready."
-* "Your job application has been shortlisted."
-* "Click this link to complete verification."
+* Fake banking messages
+* KYC and account-verification requests
+* UPI/payment scams
+* Phishing pages
+* Fake courier notifications
+* QR-code fraud
+* Impersonation
+* Job/reward/refund scams
+* Urgency and fear-based messaging
 
-The technical challenge is therefore not limited to malware detection.
+A user may receive a screenshot or image without knowing whether it is legitimate.
 
-The real problem is:
-
-> **How can a user quickly determine whether a suspicious digital interaction deserves trust before taking an irreversible action?**
-
-ScamShield approaches this as a **risk-analysis and user-decision problem**.
-
----
-
-# 💡 Solution
-
-ScamShield introduces a security checkpoint between **suspicious content** and **user action**.
-
-The high-level process is:
+SenseCheck AI adds a security checkpoint:
 
 ```text
-INPUT
-  │
-  ├── Message
-  ├── URL
-  ├── Suspicious request
-  └── Other digital content
-       │
-       ▼
-NORMALIZATION
-       │
-       ▼
-SECURITY SIGNAL EXTRACTION
-       │
-       ├── Linguistic signals
-       ├── Urgency / pressure signals
-       ├── Impersonation signals
-       ├── Link / destination signals
-       ├── Request-for-sensitive-data signals
-       └── Other suspicious indicators
-       │
-       ▼
-RISK ANALYSIS
-       │
-       ▼
-VERDICT
-       │
-       ├── Low / safer
-       ├── Suspicious
-       └── High-risk
-       │
-       ▼
-EXPLANATION
-       │
-       ▼
-RECOMMENDED USER ACTION
+Receive → Analyze → Understand → Verify → Act
+```
+
+instead of:
+
+```text
+Receive → Panic → Click
 ```
 
 ---
 
-# 🧠 Security Philosophy
+# 🚀 Key Features
 
-ScamShield follows a **defence-in-depth** mindset.
+### 🔍 Multimodal Scam Analysis
 
-Rather than relying on a single indicator, suspicious activity can be evaluated using multiple signals.
+Users can submit suspicious screenshots and images containing:
+
+* Messages
+* Emails
+* Payment pages
+* QR codes
+* KYC notices
+* Transaction screens
+* Social-media messages
+* Other suspicious digital content
+
+The backend processes the uploaded asset through multiple analysis stages.
+
+### 🧠 Explainable Risk Assessment
+
+The platform does not only return a score.
+
+It can surface the signals responsible for a verdict, including:
+
+* Urgency
+* Impersonation
+* Sensitive-information requests
+* Financial pressure
+* Suspicious links
+* Social-engineering patterns
+
+The result is converted into a human-readable security recommendation.
+
+### 📊 Risk Scoring
+
+The backend combines deterministic security rules with LLM-based classification.
+
+```text
+                ┌──────────────────┐
+                │  Rule Engine      │
+                │     40%           │
+                └────────┬─────────┘
+                         │
+                         ├──────────────┐
+                         │              │
+                         ▼              ▼
+                  Deterministic      LLM
+                    Signals       Classification
+                         │              │
+                         └──────┬───────┘
+                                ▼
+                         Unified Risk Score
+```
+
+Current scoring architecture:
+
+```text
+riskScore = (ruleScore × 0.4) + (llmScore × 0.6)
+```
+
+When an OpenAI API key is unavailable, the system gracefully falls back to the deterministic rule score.
+
+### ☁️ Cloudinary Image Pipeline
+
+Cloudinary is integrated as the image ingestion and transformation layer.
+
+The backend:
+
+1. Validates uploaded file signatures.
+2. Uploads valid images to Cloudinary.
+3. Generates optimized image transformations.
+4. Uses transformed assets for downstream analysis.
+5. Stores Cloudinary metadata for processing and cleanup.
+
+The backend specifically uses transformations such as:
+
+```text
+f_auto
+q_auto
+e_improve
+e_sharpen
+e_enhance
+```
+
+to improve image quality before OCR and downstream processing.
+
+### 🔳 QR & UPI Analysis
+
+QR images can be routed into a dedicated QR pipeline.
 
 Conceptually:
 
 ```text
-                    ┌─────────────────┐
-                    │  User Input     │
-                    └────────┬────────┘
-                             │
-             ┌───────────────┼───────────────┐
-             ▼               ▼               ▼
-      Content Signals   URL Signals    Context Signals
-             │               │               │
-             └───────────────┼───────────────┘
-                             ▼
-                    ┌─────────────────┐
-                    │ Risk Evaluation │
-                    └────────┬────────┘
-                             │
-                             ▼
-                    ┌─────────────────┐
-                    │ Risk / Verdict  │
-                    └────────┬────────┘
-                             │
-                             ▼
-                    ┌─────────────────┐
-                    │ User Guidance   │
-                    └─────────────────┘
+QR Image
+   ↓
+QR Detection
+   ↓
+QR Decode
+   ↓
+UPI Intent Parsing
+   ↓
+Threat / Reputation Checks
+   ↓
+Risk Evaluation
 ```
 
-This approach is important because a scam rarely depends on only one characteristic.
+The backend uses `jsQR` for QR processing and supports UPI-oriented entity extraction.
 
-For example:
+### 🌐 URL & Reputation Intelligence
+
+Extracted URLs and entities can be evaluated using reputation-oriented services.
+
+The backend supports:
+
+* URL extraction
+* UPI identifier extraction
+* Phone/entity extraction
+* Reputation lookups
+* Threat blocklist access
+* Redis-backed caching
+
+This creates a separation between **content analysis** and **external threat intelligence**.
+
+### ⚡ Asynchronous Processing
+
+Long-running scans can be processed asynchronously using **BullMQ + Redis**.
 
 ```text
-Urgency
-   +
-Impersonation
-   +
-Suspicious URL
-   +
-Sensitive-data request
-   =
-High-risk interaction
+Client
+  │
+  ▼
+POST /api/scan/analyze
+  │
+  ▼
+Create Scan Job
+  │
+  ▼
+BullMQ / Redis
+  │
+  ▼
+Worker
+  │
+  ├── OCR
+  ├── QR
+  ├── Reputation
+  ├── Rules
+  ├── LLM
+  └── Verdict
+  │
+  ▼
+Persist Result
+  │
+  ▼
+Client Polls Result
 ```
+
+The application also supports graceful degradation to synchronous processing when Redis is unavailable.
+
+### 🔐 Authentication & Security Controls
+
+The backend includes:
+
+* JWT access-token authentication
+* Refresh-token rotation
+* Password-reset workflow
+* Zod request validation
+* Rate limiting
+* Helmet security headers
+* Request IDs
+* Centralized error handling
+* Magic-byte file validation
+* Sentry integration
+* Environment-based secret management
+
+These controls are implemented as backend middleware/services rather than being mixed into frontend presentation logic.
 
 ---
 
 # 🏗️ System Architecture
 
-The project can be represented using the following logical architecture:
-
 ```text
-┌───────────────────────────────────────────────────────────┐
-│                     PRESENTATION LAYER                    │
-│                                                           │
-│       ScamShield Web Interface / Responsive UI            │
-│                                                           │
-│   Input → Scan → Analysis State → Verdict → Guidance      │
-└─────────────────────────────┬─────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│                         USER                                  │
+│                                                              │
+│  Upload Screenshot / Suspicious Digital Content              │
+└─────────────────────────────┬────────────────────────────────┘
                               │
                               ▼
-┌───────────────────────────────────────────────────────────┐
-│                    APPLICATION LAYER                      │
-│                                                           │
-│  Input Validation                                         │
-│  Content Normalization                                    │
-│  Security Signal Extraction                              │
-│  Risk Evaluation                                          │
-│  Result Formatting                                        │
-└─────────────────────────────┬─────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│                     REACT FRONTEND                            │
+│                                                              │
+│  Upload UI → Processing State → Result UI                    │
+└─────────────────────────────┬────────────────────────────────┘
                               │
                               ▼
-┌───────────────────────────────────────────────────────────┐
-│                     SECURITY ENGINE                       │
-│                                                           │
-│  • Suspicious-pattern detection                           │
-│  • Social-engineering signal analysis                     │
-│  • URL / destination analysis                             │
-│  • Impersonation indicators                               │
-│  • Sensitive-data request detection                      │
-│  • Risk classification                                    │
-└─────────────────────────────┬─────────────────────────────┘
-                              │
-                              ▼
-┌───────────────────────────────────────────────────────────┐
-│                    RESPONSE LAYER                         │
-│                                                           │
-│  Risk Level                                               │
-│  Explanation                                              │
-│  Detected Indicators                                      │
-│  Suggested Next Step                                      │
-└───────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│                    EXPRESS API LAYER                          │
+│                                                              │
+│  Auth • Validation • Rate Limiting • Scan Orchestration      │
+└───────────────┬─────────────────────┬────────────────────────┘
+                │                     │
+                ▼                     ▼
+        ┌───────────────┐      ┌────────────────┐
+        │  Cloudinary   │      │  PostgreSQL    │
+        │ Image Pipeline│      │    + Prisma    │
+        └───────┬───────┘      └────────────────┘
+                │
+                ▼
+        ┌──────────────────────┐
+        │   Asset Router       │
+        │                      │
+        │ QR / Text / Payment  │
+        │ Email / KYC / etc.   │
+        └──────────┬───────────┘
+                   │
+          ┌────────┼─────────┐
+          ▼        ▼         ▼
+       OCR      QR Decode  Reputation
+          │        │         │
+          └────────┼─────────┘
+                   ▼
+          ┌─────────────────┐
+          │  Risk Engine    │
+          │                 │
+          │ Rules + LLM     │
+          └────────┬────────┘
+                   ▼
+          ┌─────────────────┐
+          │ Verdict Engine  │
+          └────────┬────────┘
+                   ▼
+          Explainable Result
+                   │
+                   ▼
+              USER ACTION
 ```
 
 ---
 
-# 🔄 End-to-End Workflow
+# 🔄 Scan Processing Pipeline
 
-## 1. User Input
-
-The user submits suspicious content through the ScamShield interface.
-
-The application first performs basic input validation and normalization.
+The core backend workflow can be represented as:
 
 ```text
-User
- │
- ▼
-Enter suspicious content
- │
- ▼
-Client-side validation
- │
- ├── Empty?
- ├── Invalid?
- └── Valid
-      │
-      ▼
-Security analysis
+                USER UPLOAD
+                     │
+                     ▼
+          Multipart File Reception
+                     │
+                     ▼
+             Magic-Byte Validation
+                     │
+                     ▼
+              Cloudinary Upload
+                     │
+                     ▼
+             Image Optimization
+                     │
+                     ▼
+              Asset Classification
+                     │
+       ┌─────────────┼──────────────┐
+       ▼             ▼              ▼
+     QR Path      Text Path     Payment/KYC Path
+       │             │              │
+       ▼             ▼              ▼
+    QR Decode        OCR       OCR / Extraction
+       │             │              │
+       └─────────────┼──────────────┘
+                     ▼
+             Entity Extraction
+                     │
+                     ▼
+          Reputation / Threat Intel
+                     │
+                     ▼
+              Rules Engine
+                     │
+                     ▼
+             LLM Classification
+                     │
+                     ▼
+               Risk Scoring
+                     │
+                     ▼
+              Verdict Shaping
+                     │
+                     ▼
+       Explainable Security Result
 ```
 
 ---
 
-## 2. Input Normalization
+# 🧮 Risk Scoring Architecture
 
-Before analysis, raw input can be normalized into a consistent internal representation.
+SenseCheck AI uses a hybrid scoring model.
 
-Example transformations include:
+## Deterministic Layer
+
+The rule engine evaluates security signals such as:
 
 ```text
-Raw Input
-   │
-   ├── Trim unnecessary whitespace
-   ├── Normalize URL representation
-   ├── Extract links
-   ├── Identify important tokens
-   └── Preserve original content for explanation
+Urgency
+Threat / account pressure
+OTP harvesting
+Sensitive-data requests
+Suspicious URLs
+Financial requests
+Impersonation patterns
+Social-engineering indicators
 ```
 
-This reduces inconsistencies during downstream analysis.
+## LLM Layer
+
+The backend can use an LLM classifier to interpret the broader context of the extracted content, including Indian scam patterns.
+
+Current implementation:
+
+```text
+Rule Score → 40%
+LLM Score  → 60%
+
+Final Risk Score
+= Rule Score × 0.4
++ LLM Score × 0.6
+```
+
+The architecture also supports graceful degradation:
+
+```text
+             OpenAI Available?
+                /        \
+              YES        NO
+               │          │
+               ▼          ▼
+          Rules + LLM   Rules Only
+               │          │
+               └────┬─────┘
+                    ▼
+              Final Risk Score
+```
+
+The scoring implementation is located in the backend scoring service.
 
 ---
 
-## 3. Signal Extraction
+# 🧠 Explainability Model
 
-The security layer looks for indicators that may increase the probability of malicious intent.
-
-### Example signal families
-
-| Signal Group            | Example Indicators                                 |
-| ----------------------- | -------------------------------------------------- |
-| Urgency                 | "Act immediately", "expires today"                 |
-| Authority impersonation | Bank, government, courier, employer                |
-| Sensitive information   | OTP, password, PIN, card/account information       |
-| Financial pressure      | Payment request, fee, transfer request             |
-| Link anomalies          | Unexpected destination, suspicious domain patterns |
-| Social engineering      | Fear, reward, urgency, authority                   |
-| Verification pressure   | Forced login or identity verification              |
-
-These signals can then be transformed into machine-readable security features.
+A key design goal is to avoid a black-box:
 
 ```text
-Input
-  │
-  ▼
-Feature Extraction
-  │
-  ├── urgency_score
-  ├── impersonation_score
-  ├── sensitive_request_score
-  ├── financial_pressure_score
-  ├── link_risk_score
-  └── social_engineering_score
+"Risk = 91"
 ```
 
----
-
-# ⚙️ Risk Evaluation
-
-A conceptual risk model can combine the extracted signals:
+Instead, SenseCheck is designed around:
 
 ```text
-Risk Score =
-    w1 × Urgency
-  + w2 × Impersonation
-  + w3 × Sensitive Data Request
-  + w4 × Financial Pressure
-  + w5 × Link Risk
-  + w6 × Social Engineering
-```
-
-Where:
-
-* `w1 ... w6` represent the relative importance of each signal.
-* Individual components contribute to an aggregate risk assessment.
-* The resulting score is converted into a human-readable verdict.
-
-### Example
-
-```text
-Input:
-
-"URGENT: Your bank account will be blocked.
-Click here and verify your account immediately."
-
-Detected:
-
-✓ Urgency
-✓ Authority impersonation
-✓ Account-threat language
-✓ Verification request
-✓ Link interaction
-
-             │
-             ▼
-
-       Elevated Risk
-
-             │
-             ▼
-
-      SUSPICIOUS / HIGH RISK
-```
-
-> The exact production scoring weights should remain implementation-specific rather than being hard-coded into the README unless they are part of the public source code.
-
----
-
-# 🔐 Threat Model
-
-ScamShield primarily addresses **social-engineering-driven threats**.
-
-## Threat Categories
-
-### 1. Phishing
-
-Attackers attempt to convince users to visit malicious or fraudulent websites.
-
-```text
-Victim
-  │
-  ▼
-Fake message
-  │
-  ▼
-Malicious URL
-  │
-  ▼
-Fake website
-  │
-  ▼
-Credential / payment theft
-```
-
-ScamShield introduces an analysis checkpoint before the user follows the attacker's call-to-action.
-
----
-
-### 2. Impersonation
-
-Attackers may pretend to represent:
-
-* Banks
-* Government organizations
-* Delivery services
-* Employers
-* Customer support teams
-* Financial institutions
-* Technology companies
-
-A security system should therefore analyse the **combination of claimed identity + requested action + delivery mechanism**, rather than trusting the sender's displayed identity alone.
-
----
-
-### 3. Urgency-Based Social Engineering
-
-Attackers often attempt to remove the victim's time to think.
-
-```text
-Normal decision process:
-
-Receive → Think → Verify → Act
-
-Scam process:
-
-Receive → Panic → Act
-```
-
-ScamShield is designed to restore the missing **verification step**.
-
-```text
-Receive
-   ↓
-ScamShield
-   ↓
-Verify
-   ↓
-Act
-```
-
----
-
-### 4. Financial Fraud
-
-Potentially dangerous requests can include:
-
-* Unexpected transfers
-* Fake refunds
-* Verification fees
-* Prize claims
-* Payment requests
-* Account recovery requests
-
-The system should treat unusual financial requests as important security signals.
-
----
-
-# 🔎 URL Security Analysis
-
-URLs deserve special attention because attackers can use visually convincing addresses to hide malicious destinations.
-
-A robust URL analysis layer can inspect:
-
-```text
-URL
- │
- ├── Scheme
- ├── Hostname
- ├── Domain
- ├── Subdomain structure
- ├── Redirect parameters
- ├── Encoding
- ├── Suspicious characters
- └── Destination consistency
+Risk Score
+    +
+Detected Signals
+    +
+Evidence
+    +
+Explanation
+    +
+Recommended Action
 ```
 
 Example:
 
 ```text
-https://example.com
-        │
-        ├── Scheme → HTTPS
-        ├── Host → example.com
-        └── Domain → example.com
-```
-
-Suspicious constructions may include:
-
-```text
-https://example-login-security.example-domain.tld
-```
-
-or domains attempting to visually resemble a trusted organization.
-
-URL analysis should therefore be treated as a **signal**, not as proof of maliciousness.
-
----
-
-# 🧩 Frontend Architecture
-
-The interface is designed around a security-first user journey:
-
-```text
-Landing / Dashboard
-        │
-        ▼
-   User Input
-        │
-        ▼
-   Scan State
-        │
-        ▼
- Analysis Results
-        │
-    ┌───┴────┐
-    ▼        ▼
-Low Risk   High Risk
-    │        │
-    ▼        ▼
-Continue   Stop / Verify
-```
-
-A strong frontend implementation separates:
-
-```text
-UI Components
-      ↓
-Application State
-      ↓
-Analysis Request
-      ↓
-Result State
-      ↓
-Security Explanation
-```
-
-This prevents security logic from becoming tightly coupled to presentation components.
-
----
-
-# 📦 Suggested Component Model
-
-A scalable React-style component hierarchy can be organized conceptually as:
-
-```text
-App
-├── Navbar
-├── HeroSection
-├── Scanner
-│   ├── InputPanel
-│   ├── ScanButton
-│   └── ExampleInputs
-├── Analysis
-│   ├── LoadingState
-│   ├── RiskBadge
-│   ├── RiskScore
-│   ├── Indicators
-│   └── Recommendation
-├── SecurityEducation
-└── Footer
-```
-
-Each component should have a single responsibility.
-
-For example:
-
-```text
-InputPanel
-    ↓
-Collect input only
-
-Scanner
-    ↓
-Control scan state
-
-AnalysisResult
-    ↓
-Render security decision
-
-Recommendation
-    ↓
-Explain what user should do next
-```
-
----
-
-# 🔁 Application State Machine
-
-The scanner can be modelled as a deterministic UI state machine:
-
-```text
-            ┌────────────┐
-            │    IDLE    │
-            └─────┬──────┘
-                  │ submit
-                  ▼
-            ┌────────────┐
-            │ ANALYZING  │
-            └─────┬──────┘
-                  │
-          ┌───────┴────────┐
-          ▼                ▼
-     ┌─────────┐      ┌─────────┐
-     │ SUCCESS │      │  ERROR  │
-     └────┬────┘      └────┬────┘
-          │                │
-          ▼                ▼
-      RESULT UI         ERROR UI
-```
-
-This structure avoids inconsistent UI states such as:
-
-```text
-loading = true
-result = null
-error = true
-```
-
-at the same time.
-
----
-
-# 🛡️ Security Design Principles
-
-## Zero-trust input handling
-
-Never assume user-provided URLs or text are safe.
-
-```text
-User Input ≠ Trusted Input
-```
-
-All input should be considered untrusted until validated.
-
----
-
-## Output encoding
-
-Security explanations rendered in the interface should be handled safely so that untrusted input cannot become executable HTML.
-
----
-
-## No secret exposure
-
-API keys, model credentials, service tokens, and other sensitive configuration values must never be committed to the frontend repository.
-
-Use environment configuration:
-
-```env
-API_KEY=...
-SERVICE_URL=...
-```
-
-and keep secrets outside source control.
-
----
-
-## HTTPS
-
-Production traffic should be served through HTTPS.
-
-The deployed ScamShield instance is hosted on Vercel, providing a production web deployment environment. The public deployment URL is:
-
-https://scamshield-l0vl114ju-arghadasars-projects.vercel.app/
-
----
-
-# 📊 Detection vs Decision Support
-
-An important architectural principle is:
-
-```text
-Detection
-   ≠
-Absolute Truth
-```
-
-A security scanner may identify strong risk indicators without proving malicious intent.
-
-Therefore:
-
-```text
-Safe-looking
-   ≠
-Guaranteed Safe
-
-Suspicious
-   ≠
-Guaranteed Criminal
-
-High Risk
-   =
-"Do not proceed without verification"
-```
-
-This distinction is essential for responsible cybersecurity tooling.
-
----
-
-# 🧪 Example Analysis Flow
-
-### Example 1 — Potential phishing
-
-```text
 Input:
-"Your account has been suspended.
-Verify now using this link."
-
-             │
-             ▼
+"Your account will be blocked today.
+Verify immediately using this link."
 
 Detected Signals:
-• Urgency
-• Account threat
-• Verification request
-• External link
-
-             │
-             ▼
+✓ Urgency
+✓ Account threat
+✓ Verification pressure
+✓ External link
 
 Risk:
 HIGH
-
-             │
-             ▼
 
 Recommendation:
-Do not click immediately.
-Verify through the organization's official application
-or website.
+Do not interact immediately.
+Verify through the organization's official website or app.
 ```
+
+This makes the security result understandable to non-security users.
 
 ---
 
-### Example 2 — Suspicious payment request
+# 🖥️ Frontend Architecture
+
+The frontend is built with **React + Vite**, with React Router handling application navigation.
+
+Current routes include:
 
 ```text
-Input:
-"Your refund is ready.
-Pay ₹499 verification fee to receive it."
-
-             │
-             ▼
-
-Signals:
-• Financial request
-• Refund impersonation
-• Unexpected payment
-• Psychological incentive
-
-             │
-             ▼
-
-Risk:
-HIGH
-```
-
----
-
-### Example 3 — Low-signal message
-
-```text
-Input:
-"Your order has been delivered."
-
-             │
-             ▼
-
-Few suspicious indicators
-             │
-             ▼
-
-Lower security risk
-```
-
-A low-risk result should still not be interpreted as an absolute guarantee.
-
----
-
-# 📐 System-Level Flowchart
-
-```text
-                         ┌───────────────────────┐
-                         │       USER            │
-                         └──────────┬────────────┘
-                                    │
-                                    ▼
-                         ┌───────────────────────┐
-                         │ Submit Suspicious     │
-                         │ Content               │
-                         └──────────┬────────────┘
-                                    │
-                                    ▼
-                         ┌───────────────────────┐
-                         │ Input Validation &    │
-                         │ Normalization         │
-                         └──────────┬────────────┘
-                                    │
-                                    ▼
-                  ┌─────────────────────────────────────┐
-                  │       Security Signal Layer         │
-                  │                                     │
-                  │  • URL indicators                   │
-                  │  • Social engineering               │
-                  │  • Impersonation                    │
-                  │  • Sensitive data requests          │
-                  │  • Financial pressure               │
-                  └──────────────────┬──────────────────┘
-                                     │
-                                     ▼
-                         ┌───────────────────────┐
-                         │ Risk Evaluation       │
-                         └──────────┬────────────┘
-                                    │
-                         ┌──────────┼──────────┐
-                         ▼          ▼          ▼
-                    ┌────────┐ ┌────────┐ ┌────────┐
-                    │  LOW   │ │ MEDIUM │ │  HIGH  │
-                    └────┬───┘ └────┬───┘ └───┬────┘
-                         │           │          │
-                         └───────────┼──────────┘
-                                     ▼
-                         ┌───────────────────────┐
-                         │ Explain Findings      │
-                         └──────────┬────────────┘
-                                    │
-                                    ▼
-                         ┌───────────────────────┐
-                         │ Recommended Action    │
-                         └───────────────────────┘
-```
-
----
-
-# 🗂️ Conceptual Project Structure
-
-A maintainable implementation can follow a structure similar to:
-
-```text
-scamshield/
+/
+├── Landing Page
 │
-├── public/
-│   ├── assets/
-│   └── icons/
+├── /analyze
+│   └── Upload → Processing → Result
 │
-├── src/
-│   ├── components/
-│   │   ├── Navbar
-│   │   ├── Scanner
-│   │   ├── RiskCard
-│   │   └── Recommendation
-│   │
-│   ├── pages/
-│   │
-│   ├── services/
-│   │   └── analysis/
-│   │
-│   ├── hooks/
-│   │
-│   ├── utils/
-│   │
-│   ├── constants/
-│   │
-│   ├── App.*
-│   └── main.*
-│
-├── .env.example
-├── package.json
-├── README.md
-└── ...
+└── /scroll-writing
+    └── Architecture / product storytelling
 ```
 
-> The exact source-tree names should be synchronized with the repository before publication.
+The frontend also supports a demo mode when Cloudinary configuration is absent.
 
----
-
-# 🚀 Deployment
-
-The public prototype is deployed on **Vercel**.
-
-### Live Application
-
-**ScamShield — Think Before You Click**
-
-https://scamshield-l0vl114ju-arghadasars-projects.vercel.app/
-
-Typical deployment pipeline:
+### Frontend State Machine
 
 ```text
-Developer
-    │
-    ▼
-Git Repository
-    │
-    ▼
-Vercel Build
-    │
-    ├── Install Dependencies
-    ├── Build Application
-    └── Generate Production Bundle
-    │
-    ▼
-Production Deployment
-    │
-    ▼
-Public ScamShield URL
+         ┌────────────┐
+         │    IDLE    │
+         └─────┬──────┘
+               │
+               ▼
+         ┌────────────┐
+         │ UPLOADING  │
+         └─────┬──────┘
+               │
+               ▼
+         ┌────────────┐
+         │ PROCESSING │
+         └─────┬──────┘
+               │
+        ┌──────┴──────┐
+        ▼             ▼
+   ┌─────────┐    ┌─────────┐
+   │ RESULT  │    │  ERROR  │
+   └─────────┘    └─────────┘
+```
+
+This state model prevents conflicting UI states and makes asynchronous processing predictable.
+
+---
+
+# 📁 Repository Structure
+
+```text
+SenseCheckAI/
+│
+├── SenseCheckAI/                 # React frontend
+│   ├── public/
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── LogoMark.jsx
+│   │   │   └── Navbar.jsx
+│   │   │
+│   │   ├── pages/
+│   │   │   ├── LandingPage.jsx
+│   │   │   ├── AnalyzePage.jsx
+│   │   │   └── ScrollWritingPage.jsx
+│   │   │
+│   │   ├── hooks/
+│   │   │   └── useAppearAnimation.js
+│   │   │
+│   │   ├── services/
+│   │   │   └── cloudinary.js
+│   │   │
+│   │   ├── data/
+│   │   │   ├── navLinks.js
+│   │   │   └── demoAnalysis.js
+│   │   │
+│   │   ├── App.jsx
+│   │   ├── main.jsx
+│   │   └── index.css
+│   │
+│   ├── .env.example
+│   ├── package.json
+│   └── vite.config.js
+│
+├── backend/
+│   ├── prisma/
+│   │   ├── schema.prisma
+│   │   └── seed.js
+│   │
+│   ├── src/
+│   │   ├── config/
+│   │   ├── middleware/
+│   │   ├── schemas/
+│   │   ├── routes/
+│   │   ├── controllers/
+│   │   ├── queues/
+│   │   └── services/
+│   │
+│   ├── __tests__/
+│   │   ├── scoring.test.js
+│   │   ├── ocr.entities.test.js
+│   │   └── magic.bytes.test.js
+│   │
+│   ├── server.js
+│   ├── worker.js
+│   ├── .env.example
+│   └── package.json
+│
+└── README.md
+```
+
+The directory structure reflects the current repository organization and separates UI, API orchestration, asynchronous jobs, security middleware, persistence, and analysis services.
+
+---
+
+# 🧰 Tech Stack
+
+## Frontend
+
+| Technology       | Role                            |
+| ---------------- | ------------------------------- |
+| React 19         | UI framework                    |
+| Vite             | Build tooling / dev server      |
+| React Router     | Client-side routing             |
+| Tailwind CSS     | Utility-first styling           |
+| Framer Motion    | UI animation                    |
+| Cloudinary       | Client-facing image integration |
+| JavaScript / JSX | Application code                |
+
+## Backend
+
+| Technology    | Role                             |
+| ------------- | -------------------------------- |
+| Node.js       | Runtime                          |
+| Express       | REST API                         |
+| Prisma        | ORM                              |
+| PostgreSQL    | Persistent database              |
+| Redis         | Queue/cache infrastructure       |
+| BullMQ        | Asynchronous job processing      |
+| Cloudinary    | Image ingestion + transformation |
+| OpenAI API    | LLM-based scam classification    |
+| Tesseract.js  | OCR fallback                     |
+| Google Vision | OCR integration                  |
+| jsQR          | QR decoding                      |
+| Zod           | Schema validation                |
+| JWT           | Authentication                   |
+| Helmet        | HTTP security headers            |
+| Sentry        | Error monitoring                 |
+| Pino          | Structured logging               |
+
+---
+
+# 🔌 API Overview
+
+## Authentication
+
+| Method | Endpoint                    | Description             |
+| ------ | --------------------------- | ----------------------- |
+| `POST` | `/api/auth/signup`          | Register a user         |
+| `POST` | `/api/auth/login`           | Authenticate user       |
+| `POST` | `/api/auth/refresh`         | Rotate refresh token    |
+| `POST` | `/api/auth/logout`          | Revoke refresh token    |
+| `POST` | `/api/auth/forgot-password` | Start password reset    |
+| `POST` | `/api/auth/reset-password`  | Complete password reset |
+| `GET`  | `/api/auth/me`              | Retrieve current user   |
+
+## Scan API
+
+| Method  | Endpoint                 | Description                 |
+| ------- | ------------------------ | --------------------------- |
+| `POST`  | `/api/scan/upload`       | Upload image to Cloudinary  |
+| `POST`  | `/api/scan/analyze`      | Create analysis job         |
+| `GET`   | `/api/scan/:id`          | Retrieve scan status/result |
+| `GET`   | `/api/scan/:id/public`   | Public verdict view         |
+| `PATCH` | `/api/scan/:id/share`    | Toggle public sharing       |
+| `GET`   | `/api/scan/history`      | User scan history           |
+| `POST`  | `/api/scan/:id/feedback` | Submit verdict feedback     |
+
+## Community / Intelligence
+
+| Method | Endpoint                | Description                          |
+| ------ | ----------------------- | ------------------------------------ |
+| `POST` | `/api/report/scam`      | Report suspicious UPI/URL/phone data |
+| `GET`  | `/api/report/blocklist` | Retrieve public threat blocklist     |
+| `GET`  | `/api/stats?days=7`     | Aggregate platform statistics        |
+
+---
+
+# ⚙️ Local Development
+
+## 1. Clone the repository
+
+```bash
+git clone https://github.com/ArghaDasAR/SenseCheckAI.git
+cd SenseCheckAI
 ```
 
 ---
 
-# 🧪 Testing Strategy
+## 2. Start the frontend
 
-A production-ready ScamShield implementation should test the system at multiple layers.
+```bash
+cd SenseCheckAI
+npm install
+```
 
-## Unit Testing
+Create `.env` from `.env.example`:
 
-Test:
+```env
+VITE_CLOUDINARY_CLOUD_NAME=your_cloud_name
+VITE_CLOUDINARY_UPLOAD_PRESET=your_upload_preset
+```
 
-* URL parsing
-* Text normalization
-* Risk-score calculations
-* Suspicious-pattern detection
-* Input validation
-* Result formatting
+Start the development server:
+
+```bash
+npm run dev
+```
+
+Build for production:
+
+```bash
+npm run build
+```
+
+Run linting:
+
+```bash
+npm run lint
+```
+
+The frontend automatically supports demo mode when Cloudinary configuration is absent. In demo mode, uploads are simulated locally and the analysis result comes from mock data.
+
+---
+
+# 🖥️ Backend Setup
+
+Open another terminal:
+
+```bash
+cd backend
+npm install
+```
+
+Create the environment file:
+
+```bash
+cp .env.example .env
+```
+
+Configure the required services.
 
 Example:
 
-```text
-Input
-  ↓
-extractIndicators()
-  ↓
-Expected security signals
+```env
+DATABASE_URL=postgresql://...
+
+CLOUDINARY_CLOUD_NAME=...
+CLOUDINARY_API_KEY=...
+CLOUDINARY_API_SECRET=...
+
+OPENAI_API_KEY=...
+REDIS_URL=...
+
+GOOGLE_VISION_API_KEY=...
+VIRUSTOTAL_API_KEY=...
+
+JWT_SECRET=...
+```
+
+The repository defines additional optional configuration for Sentry and email delivery.
+
+---
+
+# 🗄️ Database Setup
+
+Initialize Prisma:
+
+```bash
+npx prisma db push
+```
+
+Seed initial threat data:
+
+```bash
+npm run db:seed
+```
+
+Open Prisma Studio:
+
+```bash
+npm run db:studio
+```
+
+For schema migrations:
+
+```bash
+npm run db:migrate
 ```
 
 ---
 
-## Integration Testing
+# ▶️ Run the Backend
 
-Validate:
+Development server:
+
+```bash
+npm run dev
+```
+
+Default API:
 
 ```text
-UI
- ↓
-Scanner
- ↓
-Analysis Service
- ↓
-Result
- ↓
-Rendered Verdict
+http://localhost:4000
 ```
+
+Start the worker:
+
+```bash
+npm run worker
+```
+
+or:
+
+```bash
+node worker.js
+```
+
+The backend supports synchronous processing when Redis is unavailable, while Redis + BullMQ enables the intended asynchronous architecture.
 
 ---
 
-## Adversarial Testing
+# 🧪 Testing
 
-Cybersecurity products require adversarial test cases.
+Run backend tests:
 
-Examples:
+```bash
+npm test
+```
+
+Watch mode:
+
+```bash
+npm run test:watch
+```
+
+Current test coverage includes:
 
 ```text
-Normal message
-Suspicious message
-Obfuscated message
-Mixed-language message
-Malformed URL
-Lookalike domain
-Encoded URL
-Extremely long input
-Empty input
+Scoring engine
+        ↓
+Entity extraction
+        ↓
+Magic-byte file validation
+```
+
+The repository contains dedicated tests for scoring, OCR/entity extraction, and file validation.
+
+For a cybersecurity-oriented system, adversarial testing should additionally include:
+
+```text
+Malformed URLs
+Obfuscated text
+Mixed-language messages
+Look-alike domains
+Encoded URLs
+Large inputs
+Empty inputs
 Unexpected characters
+QR manipulation
+False-positive scenarios
 ```
 
-The objective is not only to detect obvious scams, but also to reduce false negatives caused by attacker-controlled formatting.
+---
+
+# 🔐 Security Architecture
+
+Security is treated as a first-class concern.
+
+### Untrusted Input
+
+```text
+User Input
+   ↓
+Validation
+   ↓
+Type / Signature Verification
+   ↓
+Safe Processing
+```
+
+Uploaded files are checked using file signatures/magic bytes before being processed.
+
+### Secrets
+
+Sensitive keys must remain server-side:
+
+```text
+❌ Frontend
+OPENAI_API_KEY
+CLOUDINARY_API_SECRET
+JWT_SECRET
+
+✅ Backend
+Environment Variables / Secret Manager
+```
+
+Only public frontend configuration should use `VITE_` variables.
+
+### API Protection
+
+The backend includes:
+
+```text
+JWT Authentication
+Rate Limiting
+Zod Validation
+Helmet
+Request IDs
+Centralized Error Handling
+Structured Logging
+```
+
+---
+
+# ☁️ Cloudinary Data Lifecycle
+
+Sensitive screenshots should not be retained indefinitely.
+
+The backend associates uploaded scans with an expiry timestamp and provides a cleanup service to remove expired Cloudinary assets. The current repository documents a **30-day image TTL** for originals.
+
+Conceptually:
+
+```text
+Upload
+  ↓
+Cloudinary
+  ↓
+Scan Processing
+  ↓
+Result Stored
+  ↓
+TTL Reached
+  ↓
+Cloudinary Asset Deleted
+```
+
+The current implementation retains analysis information separately from the original image asset.
+
+> For production environments, additional protection such as encryption of sensitive database fields should be considered because OCR-derived text may contain personally identifiable information.
+
+---
+
+# 📈 Scalability Model
+
+The architecture is designed so expensive analysis tasks can be moved away from the synchronous HTTP request path.
+
+```text
+                ┌──────────────┐
+                │  API Server  │
+                └──────┬───────┘
+                       │
+                       ▼
+                ┌──────────────┐
+                │    Redis     │
+                └──────┬───────┘
+                       │
+                       ▼
+                ┌──────────────┐
+                │    BullMQ    │
+                └──────┬───────┘
+                       │
+                 ┌─────▼─────┐
+                 │   Worker  │
+                 └─────┬─────┘
+                       │
+       ┌───────────────┼────────────────┐
+       ▼               ▼                ▼
+      OCR           Reputation         LLM
+       │               │                │
+       └───────────────┼────────────────┘
+                       ▼
+                Verdict Service
+                       │
+                       ▼
+                  PostgreSQL
+```
+
+This allows the API layer and analysis workers to scale independently.
+
+---
+
+# 🧩 Design Principles
+
+### 1. Defence in Depth
+
+No single signal is treated as absolute proof.
+
+```text
+Urgency
+  +
+Impersonation
+  +
+Suspicious URL
+  +
+Sensitive-data request
+        ↓
+   Higher Risk
+```
+
+### 2. Explainability
+
+The objective is:
+
+```text
+Signal → Evidence → Explanation → Action
+```
+
+rather than merely returning a black-box prediction.
+
+### 3. Human-in-the-Loop
+
+SenseCheck AI assists the user instead of pretending to make an infallible security decision.
+
+```text
+AI
+ ↓
+Analyze
+ ↓
+Explain
+ ↓
+User
+ ↓
+Verify
+ ↓
+Decide
+```
 
 ---
 
 # ⚠️ Limitations
 
-ScamShield is a **security-assistance tool**, not a replacement for professional incident response, financial institutions, or law-enforcement systems.
+SenseCheck AI should be treated as a **decision-support and security-assistance system**, not as an infallible malware/scam detector.
 
 Important limitations include:
 
-* No automated system can guarantee perfect scam detection.
-* New attack patterns may not match known indicators.
-* Legitimate messages can sometimes appear suspicious.
-* Sophisticated scams may deliberately avoid obvious indicators.
-* A low-risk result must not be interpreted as proof of legitimacy.
-* Users should independently verify high-impact requests through official channels.
+* New scam patterns may not match current rules or models.
+* Legitimate messages can produce false positives.
+* Sophisticated attacks may intentionally avoid obvious indicators.
+* A low-risk result does not prove legitimacy.
+* High-impact actions should always be independently verified through official channels.
 
-This is especially important for requests involving:
+This is particularly important for:
 
 ```text
 Money
 Passwords
 OTP / verification codes
-Identity documents
 Banking information
+Identity information
 Account recovery
-Remote access
+Remote-access requests
 ```
 
 ---
 
-# 🔮 Future Roadmap
+# 🗺️ Roadmap
 
-ScamShield can evolve into a broader personal cybersecurity platform.
-
-### Phase 1 — Core Scanner
+## Phase 1 — Core Scanner
 
 ```text
-Message → Analysis → Risk → Explanation
-```
-
-### Phase 2 — Intelligence Layer
-
-```text
-URL reputation
-Domain intelligence
-Threat feeds
-Known scam patterns
-```
-
-### Phase 3 — Multimodal Detection
-
-```text
-Text
- + 
 Screenshot
- +
-QR Code
- +
-URL
- =
-Unified Threat Analysis
+   ↓
+OCR / QR
+   ↓
+Threat Signals
+   ↓
+Risk Score
+   ↓
+Explainable Verdict
 ```
 
-### Phase 4 — Browser Protection
+## Phase 2 — Threat Intelligence
 
 ```text
-User navigates to website
-          ↓
-ScamShield Browser Layer
-          ↓
-Page / URL analysis
-          ↓
-Warning before interaction
+URL Reputation
+Domain Intelligence
+Threat Feeds
+Community Blocklists
+Known Scam Patterns
 ```
 
-### Phase 5 — Personal Security Assistant
+## Phase 3 — Multimodal Detection
 
 ```text
-                         ┌─────────────────┐
-                         │   ScamShield    │
-                         │ Security Agent  │
-                         └────────┬────────┘
-                                  │
-              ┌───────────────────┼──────────────────┐
-              ▼                   ▼                  ▼
-          Messages              Links             Screenshots
-              │                   │                  │
-              └───────────────────┼──────────────────┘
-                                  ▼
-                         Unified Risk Engine
-                                  │
-                                  ▼
-                         Personal Security
-                              Guidance
+        ┌── Text
+        ├── Screenshot
+        ├── QR
+        └── URL
+             │
+             ▼
+      Unified Threat Engine
+```
+
+## Phase 4 — Browser Protection
+
+```text
+Website Visit
+      ↓
+SenseCheck Protection Layer
+      ↓
+URL / Page Analysis
+      ↓
+Risk Warning
+```
+
+## Phase 5 — Personal Security Assistant
+
+```text
+Messages
+    +
+Links
+    +
+Screenshots
+    +
+QR Codes
+    ↓
+Unified Security Agent
+    ↓
+Personalized Guidance
 ```
 
 ---
 
-# 📚 Security Concepts Demonstrated
+# 🌐 Deployment
 
-This project demonstrates practical concepts from:
-
-* Cybersecurity
-* Phishing detection
-* Social engineering
-* Threat modelling
-* Secure input handling
-* Risk scoring
-* Defensive security
-* Human-in-the-loop security
-* Security UX
-* Responsible AI-assisted decision support
-* Secure web application design
-
----
-
-# 🏆 Why ScamShield Matters
-
-Traditional cybersecurity interfaces often expose technical information that ordinary users do not know how to interpret.
-
-ScamShield focuses on converting:
+The frontend prototype is deployed on **Vercel**.
 
 ```text
-Technical Security Signals
-           ↓
-Human-readable Explanation
-           ↓
-Actionable Decision
+Developer
+    ↓
+Git Repository
+    ↓
+Vercel Build
+    ↓
+Production Bundle
+    ↓
+Live Web Application
 ```
 
-That makes cybersecurity more accessible without hiding the reasoning behind the verdict.
+### Live Application
 
-The product philosophy can be summarized as:
+**ScamShield / SenseCheck AI**
 
-> **Detect the signal. Explain the risk. Prevent the click.**
+https://scamshield-l0vl114ju-arghadasars-projects.vercel.app/
+
+The repository's current frontend documentation identifies Vercel as the deployment environment.
 
 ---
 
-# 👨‍💻 Development Philosophy
+# 📚 What This Project Demonstrates
 
-ScamShield is designed around three principles:
+This project combines concepts from:
 
-### 1. Security First
+```text
+Cybersecurity
+    +
+Threat Detection
+    +
+Phishing Analysis
+    +
+Social Engineering Detection
+    +
+Computer Vision
+    +
+OCR
+    +
+QR Analysis
+    +
+LLM Classification
+    +
+Threat Intelligence
+    +
+Secure API Design
+    +
+Async Job Processing
+    +
+Cloud Infrastructure
+    +
+Security UX
+```
 
-Every external input should be considered untrusted.
-
-### 2. Explainability
-
-Users should understand **why** something was flagged instead of receiving only a red warning.
-
-### 3. Human-in-the-Loop
-
-The final decision remains with the user, while ScamShield provides the evidence needed to make a better decision.
+Technically, the project demonstrates how a multimodal security workflow can be decomposed into independent services rather than embedding all detection logic inside a single frontend application.
 
 ---
 
@@ -1123,77 +1148,74 @@ The final decision remains with the user, while ScamShield provides the evidence
 
 Contributions are welcome.
 
-A typical contribution workflow:
+A typical workflow:
 
 ```text
 Fork
-  ↓
-Create Feature Branch
-  ↓
+ ↓
+Create Branch
+ ↓
 Implement
-  ↓
+ ↓
 Test
-  ↓
+ ↓
 Commit
-  ↓
+ ↓
 Pull Request
-  ↓
-Code Review
-  ↓
+ ↓
+Review
+ ↓
 Merge
 ```
 
-Before submitting a pull request, ensure that security-sensitive changes include appropriate validation and test coverage.
+For security-sensitive changes, include appropriate validation and regression tests.
 
 ---
 
-# 📄 License
+# 🛡️ Responsible Use
 
-Add the repository's actual license here.
+SenseCheck AI is intended for **defensive security and user-awareness purposes**.
 
-Example:
+Do not treat automated analysis as a substitute for:
+
+* Official banking verification
+* Security incident response
+* Professional cybersecurity investigation
+* Law-enforcement reporting
+
+The safest action for suspicious high-impact requests is independent verification through an official channel.
+
+---
+
+# 👨‍💻 Project
+
+**SenseCheck AI**
+
+> **Detect the signal. Explain the risk. Think before you trust.**
+
+Built with a focus on:
+
+**Security • Explainability • Human-in-the-Loop • Developer-First Architecture**
+
+---
+
+## 📄 License
+
+No license is asserted here unless a `LICENSE` file is added to the repository.
+
+---
+
+## ⭐ Support the Project
+
+If this project is useful or interesting:
 
 ```text
-MIT License
+⭐ Star the repository
+🍴 Fork it
+🐛 Open an issue
+💡 Suggest improvements
+🔐 Help improve the security pipeline
 ```
 
-Do not claim an MIT or other license unless the repository actually contains that license.
-
----
-
-# 🌐 Live Demo
-
-### ScamShield — Think Before You Click
-
-**Live:**
-https://scamshield-l0vl114ju-arghadasars-projects.vercel.app/
-
----
-
-# 🔒 Security Disclaimer
-
-ScamShield is intended to provide **preventive cybersecurity guidance and risk assessment**.
-
-It should not be treated as an authoritative determination that a website, message, sender, organization, or transaction is legitimate or fraudulent.
-
-For financially or otherwise high-impact decisions, users should independently verify the request through an official, trusted channel.
-
----
-
-## ⭐ Project Vision
-
-ScamShield aims to make safe digital behaviour as simple as:
-
-```text
-STOP
-  ↓
-CHECK
-  ↓
-UNDERSTAND
-  ↓
-VERIFY
-  ↓
-ACT
-```
-
-### **Think Before You Click. 🛡️**
+**Repository:**
+https://github.com/ArghaDasAR/SenseCheckAI
